@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { createOrder } from '../../services/supabase';
+import React, { useState, useEffect, useRef } from 'react';
+import { createOrder, searchProducts } from '../../services/supabase';
 import { useTheme } from '../../context/ThemeContext';
 
 // CreateOrderModal Component
@@ -18,6 +18,11 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
     const [total, setTotal] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Autocomplete State
+    const [suggestions, setSuggestions] = useState({}); // { itemId: [products] }
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState({}); // { itemId: index }
+    const wrapperRef = useRef(null);
+
     // Calculate total whenever items change
     useEffect(() => {
         const newTotal = items.reduce((sum, item) => {
@@ -25,6 +30,19 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
         }, 0);
         setTotal(newTotal);
     }, [items]);
+
+    // Close suggestions when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+                setSuggestions({});
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [wrapperRef]);
 
     // Add a new item row
     const addItem = () => {
@@ -39,10 +57,34 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
     };
 
     // Update item fields
-    const updateItem = (id, field, value) => {
+    const updateItem = async (id, field, value) => {
         setItems(items.map(item =>
             item.id === id ? { ...item, [field]: value } : item
         ));
+
+        // Autocomplete Logic
+        if (field === 'description') {
+            if (value.length > 1) {
+                const { data, error } = await searchProducts(value);
+                if (!error && data) {
+                    setSuggestions(prev => ({ ...prev, [id]: data }));
+                }
+            } else {
+                setSuggestions(prev => ({ ...prev, [id]: [] }));
+            }
+        }
+    };
+
+    // Select a product from suggestions
+    const selectProduct = (itemId, product) => {
+        setItems(items.map(item =>
+            item.id === itemId ? {
+                ...item,
+                description: `${product.codigo} - ${product.prd_descripcion}`,
+                // characteristics: product.prd_descripcion // Optional: pre-fill characteristics
+            } : item
+        ));
+        setSuggestions(prev => ({ ...prev, [itemId]: [] }));
     };
 
     // Handle form submission
@@ -140,7 +182,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
             zIndex: 1000,
             backdropFilter: 'blur(2px)'
         }}>
-            <div style={{
+            <div ref={wrapperRef} style={{
                 backgroundColor: colors.bgSecondary,
                 borderRadius: '8px',
                 width: '700px',
@@ -230,11 +272,12 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                                 padding: '16px',
                                 borderRadius: '8px',
                                 marginBottom: '12px',
-                                border: `1px solid ${colors.border}`
+                                border: `1px solid ${colors.border}`,
+                                position: 'relative' // For absolute positioning of suggestions
                             }}>
                                 {/* First Row: Description and Characteristics */}
                                 <div style={{ display: 'flex', gap: '12px', marginBottom: '12px' }}>
-                                    <div style={{ flex: 1 }}>
+                                    <div style={{ flex: 1, position: 'relative' }}>
                                         <label style={{ ...labelStyle, fontSize: '0.8rem', color: colors.textMuted }}>
                                             Código y Descripción
                                         </label>
@@ -244,7 +287,46 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                                             value={item.description}
                                             onChange={(e) => updateItem(item.id, 'description', e.target.value)}
                                             style={inputStyle}
+                                            autoComplete="off"
                                         />
+                                        {/* Suggestions Dropdown */}
+                                        {suggestions[item.id] && suggestions[item.id].length > 0 && (
+                                            <ul style={{
+                                                position: 'absolute',
+                                                top: '100%',
+                                                left: 0,
+                                                right: 0,
+                                                backgroundColor: colors.bgSecondary,
+                                                border: `1px solid ${colors.border}`,
+                                                borderRadius: '0 0 6px 6px',
+                                                maxHeight: '200px',
+                                                overflowY: 'auto',
+                                                zIndex: 10,
+                                                listStyle: 'none',
+                                                padding: 0,
+                                                margin: 0,
+                                                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                                            }}>
+                                                {suggestions[item.id].map((product) => (
+                                                    <li
+                                                        key={product.id}
+                                                        onClick={() => selectProduct(item.id, product)}
+                                                        style={{
+                                                            padding: '10px',
+                                                            cursor: 'pointer',
+                                                            borderBottom: `1px solid ${colors.border}`,
+                                                            color: colors.text,
+                                                            fontSize: '0.9rem',
+                                                            backgroundColor: theme === 'dark' ? '#1e293b' : 'white'
+                                                        }}
+                                                        onMouseEnter={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#334155' : '#f1f5f9'}
+                                                        onMouseLeave={(e) => e.target.style.backgroundColor = theme === 'dark' ? '#1e293b' : 'white'}
+                                                    >
+                                                        <strong>{product.codigo}</strong> - {product.prd_descripcion}
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        )}
                                     </div>
                                     <div style={{ flex: 1 }}>
                                         <label style={{ ...labelStyle, fontSize: '0.8rem', color: colors.textMuted }}>

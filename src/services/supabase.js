@@ -121,3 +121,20 @@ export async function deleteOrder(orderId) {
 
     return { data, error };
 }
+
+/**
+ * Search products by code or description
+ * @param {string} query - The search query
+ * @returns {Object} - { data, error }
+ */
+export async function searchProducts(query) {
+    if (!query) return { data: [], error: null };
+
+    const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .or(`codigo.ilike.%${query}%,prd_descripcion.ilike.%${query}%`)
+        .limit(10);
+
+    return { data, error };
+}
