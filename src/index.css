@@ -32,6 +32,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
   display: flex;
@@ -179,8 +183,8 @@ input:focus {
     flex-direction: row !important;
     overflow-x: auto !important;
     scroll-snap-type: x mandatory;
-    padding: 16px !important;
-    gap: 16px !important;
+    padding: 0px !important;
+    gap: 8px !important;
     height: calc(100vh - 180px) !important;
     /* Adjust for taller mobile header */
   }

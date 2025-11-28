@@ -21,11 +21,10 @@ export default function Home() {
 
             {/* Filter Bar */}
             <div className="mobile-flex-col mobile-p-4" style={{
-                padding: '16px 24px',
                 display: 'flex',
                 gap: '12px',
                 borderBottom: `1px solid ${colors.border}`,
-                backgroundColor: colors.bgSecondary,
+                backgroundColor: 'transparent',
                 alignItems: 'center',
                 flexWrap: 'wrap'
             }}>

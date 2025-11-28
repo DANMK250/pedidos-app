@@ -481,22 +481,40 @@ export default function OrderDetailsSidebar({ isOpen, onClose, order, onUpdateOr
                     )}
 
                     {order.status === 'Facturado' && (
-                        <button
-                            onClick={() => handleStatusChange('Finalizado')}
-                            disabled={isUpdating}
-                            style={{
-                                backgroundColor: '#22c55e',
-                                color: 'white',
-                                border: 'none',
-                                padding: '10px 20px',
-                                borderRadius: '6px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                flex: 1
-                            }}
-                        >
-                            Finalizar Pedido
-                        </button>
+                        <>
+                            <button
+                                onClick={() => handleStatusChange('Creado')}
+                                disabled={isUpdating}
+                                style={{
+                                    backgroundColor: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    flex: 1
+                                }}
+                            >
+                                Devolver
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange('Finalizado')}
+                                disabled={isUpdating}
+                                style={{
+                                    backgroundColor: '#22c55e',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    flex: 1
+                                }}
+                            >
+                                Finalizar Pedido
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
