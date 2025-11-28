@@ -1,7 +1,7 @@
--- 1. Reset: Drop the table if it already exists (CAUTION: deletes existing data)
+-- 1. Reset: Drop the table if it already exists (This deletes ALL data to prevent duplicates)
 drop table if exists public.products;
 
--- 2. Create the products table
+-- 2. Create the products table (Simple version without prices)
 create table public.products (
   id uuid default gen_random_uuid() primary key,
   codigo text not null unique,
@@ -19,16 +19,5 @@ for select
 to public
 using (true);
 
--- 5. Insert Sample Data
-insert into public.products (codigo, prd_descripcion)
-values
-  ('001', 'DELIVERY'),
-  ('002', 'PAQUETE KIT 1 Y 2 (1000 U)'),
-  ('003', 'PAQUETE KIT 1 Y 2 (500 U)'),
-  ('ACT-001', 'ACTIVADOR DE BATERIA IPOWER X'),
-  ('ACT-002', 'ACTIVADOR DE BATERIAS SUNSHINE SS-915'),
-  ('ACT-003', 'REACTIVADOR IPOWER X'),
-  ('AD-001', 'ADAPTADOR KOUDERS'),
-  ('AD-002', 'ADAPTADOR DE EUROPEO A AMERICANO NEGRO'),
-  ('AD-003', 'CONECTOR SENCILLO'),
-  ('AD-004', 'ADAPTADOR DE AUDIO C A JACK 3.5');
+-- NO SAMPLE DATA INSERTED
+-- This ensures the table is empty so you can import your CSV without "Duplicate Key" errors.
