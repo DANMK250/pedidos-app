@@ -69,6 +69,7 @@ export default function KanbanBoard() {
                 orders={getOrdersByStatus('Creado')}
                 color="#3b82f6" // Blue
                 onOrderClick={setSelectedOrder}
+                isGrouped={true}
             />
             <KanbanColumn
                 title="En Revisión"

@@ -7,6 +7,7 @@ import { useTheme } from '../context/ThemeContext';
 // Replaces the old list view with the new Kanban Board layout.
 export default function Home() {
     const { colors } = useTheme();
+    const [showFilters, setShowFilters] = React.useState(false);
 
     return (
         <div style={{
@@ -19,87 +20,6 @@ export default function Home() {
             <DashboardHeader />
 
             {/* Filter Bar */}
-            <div className="mobile-flex-col mobile-p-4" style={{
-                padding: '16px 24px',
-                display: 'flex',
-                gap: '12px',
-                borderBottom: `1px solid ${colors.border}`,
-                backgroundColor: colors.bgSecondary,
-                alignItems: 'center'
-            }}>
-                <input
-                    type="text"
-                    placeholder="🔍 Buscar pedidos..."
-                    className="mobile-w-full"
-                    style={{
-                        padding: '8px 12px',
-                        borderRadius: '6px',
-                        border: `1px solid ${colors.inputBorder}`,
-                        width: '300px',
-                        fontSize: '0.9rem',
-                        backgroundColor: colors.inputBg,
-                        color: colors.text
-                    }}
-                />
-                <button style={{
-                    backgroundColor: colors.bgTertiary,
-                    color: colors.textSecondary,
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '6px',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                }}>
-                    ⚙ Filtros
-                </button>
-
-                {/* Filter Dropdowns */}
-                <select className="mobile-w-full" style={{
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${colors.inputBorder}`,
-                    fontSize: '0.9rem',
-                    backgroundColor: colors.inputBg,
-                    color: colors.textSecondary
-                }}>
-                    <option value="">Cliente</option>
-                    <option value="todos">Todos los clientes</option>
-                </select>
-
-                <select className="mobile-w-full" style={{
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${colors.inputBorder}`,
-                    fontSize: '0.9rem',
-                    backgroundColor: colors.inputBg,
-                    color: colors.textSecondary
-                }}>
-                    <option value="">Asesora</option>
-                    <option value="todas">Todas las asesoras</option>
-                    <option value="alexandra">Alexandra Duarte</option>
-                    <option value="dimayir">Dimayir Perez</option>
-                    <option value="brigith">Brigith Ortiz</option>
-                </select>
-
-                <select className="mobile-w-full" style={{
-                    padding: '8px 12px',
-                    borderRadius: '6px',
-                    border: `1px solid ${colors.inputBorder}`,
-                    fontSize: '0.9rem',
-                    backgroundColor: colors.inputBg,
-                    color: colors.textSecondary
-                }}>
-                    <option value="">Asignado a</option>
-                    <option value="todos">Todos los asignados</option>
-                </select>
-            </div>
-
-            {/* Main Kanban Board Area */}
-            <main style={{ flex: 1, overflow: 'hidden' }}>
-                <KanbanBoard />
-            </main>
         </div>
     );
 }

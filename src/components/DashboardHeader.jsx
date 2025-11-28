@@ -80,7 +80,7 @@ export default function DashboardHeader() {
                         }}>
                             👤
                         </div>
-                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <div className="mobile-hidden-text" style={{ display: 'flex', flexDirection: 'column' }}>
                             <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>{userEmail}</span>
                             <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>Tecnología</span>
                         </div>
@@ -99,7 +99,7 @@ export default function DashboardHeader() {
                             cursor: 'pointer'
                         }}
                     >
-                        ↪ Salir
+                        ↪ <span className="mobile-hidden-text">Salir</span>
                     </button>
 
                     {/* New Order Button */}
@@ -118,7 +118,7 @@ export default function DashboardHeader() {
                             cursor: 'pointer'
                         }}
                     >
-                        + Nuevo Pedido
+                        + <span className="mobile-hidden-text">Nuevo Pedido</span>
                     </button>
                 </div>
             </header>

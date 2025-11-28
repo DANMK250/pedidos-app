@@ -35,11 +35,15 @@
 body {
   margin: 0;
   display: flex;
-  place-items: center;
-  min-width: 320px;
+  /* place-items: center;  <-- Removed to fix framing */
+  flex-direction: column;
+  /* Ensure vertical stacking */
+  width: 100%;
   min-height: 100vh;
   background-color: var(--bg-color);
   color: var(--text-color);
+  overflow-x: hidden;
+  /* Prevent horizontal scroll on body */
 }
 
 #root {
@@ -147,6 +151,14 @@ input:focus {
 
   .mobile-p-4 {
     padding: 16px !important;
+  }
+
+  .mobile-hidden-text {
+    display: none !important;
+  }
+
+  .mobile-only-flex {
+    display: flex !important;
   }
 }
 
