@@ -1,0 +1,193 @@
+:root {
+  /* Color Palette */
+  --primary-color: #ffffff;
+  /* White text for primary actions on blue bg, or blue on white */
+  --primary-button: #2563eb;
+  /* Keep buttons blue inside white cards */
+  --primary-button-hover: #1d4ed8;
+
+  --bg-color: #3f75cc;
+  /* User requested Blue Background */
+  --text-color: #ffffff;
+  /* White text on the blue background */
+  --text-color-dark: #1f2937;
+  /* Dark text for inside white cards */
+
+  --white: #ffffff;
+  --error-color: #ef4444;
+  --success-color: #10b981;
+
+  /* Typography */
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light;
+  color: var(--text-color);
+  background-color: var(--bg-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+#root {
+  width: 100%;
+}
+
+h1,
+h2,
+h3 {
+  margin-top: 0;
+  color: inherit;
+}
+
+/* Buttons */
+button {
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: var(--white);
+  color: #3f75cc;
+  /* Blue text on white button */
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+button:hover {
+  background-color: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #9ca3af;
+  color: #e5e7eb;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Inputs */
+input {
+  border-radius: 6px;
+  border: 1px solid #d1d5db;
+  padding: 0.7em;
+  font-size: 1em;
+  font-family: inherit;
+  transition: border-color 0.25s;
+  outline: none;
+  color: var(--text-color-dark);
+}
+
+input:focus {
+  border-color: #3f75cc;
+  box-shadow: 0 0 0 3px rgba(63, 117, 204, 0.3);
+}
+
+/* Utilities for Cards (Login, etc) */
+.card {
+  background-color: var(--white);
+  color: var(--text-color-dark);
+  padding: 2.5rem;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.2), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.card h2 {
+  color: #3f75cc;
+}
+
+.card label {
+  color: var(--text-color-dark);
+}
+
+.card button[type="submit"] {
+  background-color: #3f75cc;
+  color: white;
+  width: 100%;
+}
+
+.card button[type="submit"]:hover {
+  background-color: #325db3;
+}
+
+/* Responsive Utilities */
+@media (max-width: 768px) {
+  .mobile-flex-col {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+  }
+
+  .mobile-w-full {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .mobile-hidden {
+    display: none !important;
+  }
+
+  .mobile-p-4 {
+    padding: 16px !important;
+  }
+}
+
+/* Kanban Board Mobile Scroll */
+.kanban-board-mobile {
+  /* Default grid for desktop */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  padding: 24px;
+  overflow-x: auto;
+  height: calc(100vh - 140px);
+}
+
+@media (max-width: 768px) {
+  .kanban-board-mobile {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    padding: 16px !important;
+    gap: 16px !important;
+    height: calc(100vh - 180px) !important;
+    /* Adjust for taller mobile header */
+  }
+
+  .kanban-board-mobile>* {
+    min-width: 85vw;
+    /* Show most of the card but hint at next */
+    scroll-snap-align: center;
+  }
+}
+
+/* Hide Scrollbar but keep functionality */
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
