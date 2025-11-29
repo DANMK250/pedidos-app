@@ -10,62 +10,38 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Function to initialize the session state.
+        // Simplified initialization - just get the session, don't fetch profile yet
         const initSession = async () => {
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-
-                let userRole = 'user';
-                if (session?.user) {
-                    try {
-                        const { data: profile, error } = await supabase
-                            .from('profiles')
-                            .select('role')
-                            .eq('id', session.user.id)
-                            .single();
-
-                        if (error) {
-                            console.warn('Could not fetch user profile:', error);
-                        } else {
-                            userRole = profile?.role || 'user';
-                        }
-                    } catch (profileError) {
-                        console.warn('Error fetching profile, defaulting to user role:', profileError);
-                    }
-                }
-
-                setSession(session ? { ...session, user: { ...session.user, role: userRole } } : null);
-            } catch (error) {
-                console.error('Error initializing session:', error);
-                setSession(null);
-            } finally {
-                setLoading(false);
-            }
+            const { data: { session } } = await supabase.auth.getSession();
+            setSession(session);
+            setLoading(false);
         };
 
         initSession();
 
+        // Listen for auth changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-            let userRole = 'user';
-            if (session?.user) {
+            // After login, try to fetch the user's role
+            if (session?.user && _event === 'SIGNED_IN') {
                 try {
-                    const { data: profile, error } = await supabase
+                    const { data: profile } = await supabase
                         .from('profiles')
                         .select('role')
                         .eq('id', session.user.id)
-                        .single();
+                        .maybeSingle();
 
-                    if (error) {
-                        console.warn('Could not fetch user profile:', error);
+                    if (profile) {
+                        session.user.role = profile.role || 'user';
                     } else {
-                        userRole = profile?.role || 'user';
+                        session.user.role = 'user';
                     }
-                } catch (profileError) {
-                    console.warn('Error fetching profile, defaulting to user role:', profileError);
+                } catch (err) {
+                    console.warn('Could not fetch profile:', err);
+                    session.user.role = 'user';
                 }
             }
 
-            setSession(session ? { ...session, user: { ...session.user, role: userRole } } : null);
+            setSession(session);
             setLoading(false);
         });
 
