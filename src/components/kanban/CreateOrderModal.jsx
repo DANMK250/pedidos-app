@@ -295,10 +295,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                             getOptionLabel={(c) => {
                                 const name = fixEncoding(c.client_name);
                                 const business = c.business_name ? ` (${fixEncoding(c.business_name)})` : '';
-                                const idInfo = [];
-                                if (c.cedula) idInfo.push(`CI: ${c.cedula}`);
-                                if (c.rif) idInfo.push(`RIF: ${c.rif}`);
-                                const idStr = idInfo.length > 0 ? ` - ${idInfo.join(', ')}` : '';
+                                const idStr = c.rif_cedula ? ` - ${c.rif_cedula}` : '';
                                 return `${name}${business}${idStr}`;
                             }}
                             getOptionValue={(c) => c.id}
@@ -306,9 +303,8 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                                 const q = normalizeForSearch(query);
                                 const name = normalizeForSearch(c.client_name);
                                 const business = normalizeForSearch(c.business_name);
-                                const cedula = c.cedula ? c.cedula.toLowerCase() : '';
-                                const rif = c.rif ? c.rif.toLowerCase() : '';
-                                return name.includes(q) || business.includes(q) || cedula.includes(q) || rif.includes(q);
+                                const idDoc = c.rif_cedula ? c.rif_cedula.toLowerCase() : '';
+                                return name.includes(q) || business.includes(q) || idDoc.includes(q);
                             }}
                         />
                         {asesora && clientesList.length === 0 && !isLoadingClients && (
@@ -316,6 +312,38 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                                 Esta asesora no tiene clientes asignados.
                             </div>
                         )}
+
+                        {/* Selected Client Details */}
+                        {cliente && (() => {
+                            const selectedClient = clientesList.find(c => c.id === cliente);
+                            if (!selectedClient) return null;
+                            return (
+                                <div style={{
+                                    marginTop: '12px',
+                                    padding: '12px',
+                                    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                    borderRadius: '6px',
+                                    border: `1px solid ${colors.border}`,
+                                    fontSize: '0.9rem',
+                                    color: colors.text
+                                }}>
+                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                        <div>
+                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Razón Social:</span> {fixEncoding(selectedClient.business_name) || '-'}
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Documento:</span> {selectedClient.rif_cedula || '-'}
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Teléfono:</span> {selectedClient.phone || '-'}
+                                        </div>
+                                        <div>
+                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Dirección:</span> {fixEncoding(selectedClient.address) || '-'}
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })()}
                     </div>
 
                     {/* Items Section */}
