@@ -13,16 +13,15 @@ import { ThemeProvider } from './context/ThemeContext';
 // If yes, it renders the children (the protected page).
 // If no, it redirects to the login page.
 const ProtectedRoute = ({ children }) => {
-  // const { session, loading } = useAuth();
+  const { session, loading } = useAuth();
 
-  // // If auth state is still loading, show nothing or a spinner.
-  // if (loading) return <div>Cargando...</div>;
+  // If auth state is still loading, show nothing or a spinner.
+  if (loading) return <div>Cargando...</div>;
 
-  // // If no session exists, redirect to /login.
-  // if (!session) return <Navigate to="/login" replace />;
+  // If no session exists, redirect to /login.
+  if (!session) return <Navigate to="/login" replace />;
 
-  // // If authenticated, render the protected content.
-  // TEMPORARY BYPASS: Always render children
+  // If authenticated, render the protected content.
   return children;
 };
 
@@ -49,8 +48,12 @@ export default function App() {
         {/* Set up the BrowserRouter for handling URL routing. */}
         <BrowserRouter>
           <Routes>
-            {/* Route for the Login page. TEMPORARY: Redirect to Home to bypass auth. */}
-            <Route path="/login" element={<Navigate to="/" replace />} />
+            {/* Route for the Login page. Wrapped in PublicRoute to redirect if already logged in. */}
+            <Route path="/login" element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            } />
 
             {/* Route for the Home page (root path). Wrapped in ProtectedRoute to ensure authentication. */}
             <Route path="/" element={

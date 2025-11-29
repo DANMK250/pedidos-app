@@ -33,8 +33,18 @@ export const AuthProvider = ({ children }) => {
             // Get the current session from Supabase.
             const { data: { session } } = await supabase.auth.getSession();
 
+            let userRole = 'user';
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                userRole = profile?.role || 'user';
+            }
+
             // Update the session state with the retrieved session (or null if none).
-            setSession(session ?? null);
+            setSession(session ? { ...session, user: { ...session.user, role: userRole } } : null);
 
             // Set loading to false as the initial check is complete.
             setLoading(false);
@@ -45,9 +55,19 @@ export const AuthProvider = ({ children }) => {
 
         // Set up a listener for authentication state changes (e.g., sign in, sign out).
         // The `data` object contains a `subscription` which we can use to unsubscribe later.
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            let userRole = 'user';
+            if (session?.user) {
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('role')
+                    .eq('id', session.user.id)
+                    .single();
+                userRole = profile?.role || 'user';
+            }
+
             // Update the session state whenever an auth event occurs.
-            setSession(session ?? null);
+            setSession(session ? { ...session, user: { ...session.user, role: userRole } } : null);
             // Ensure loading is false after an update.
             setLoading(false);
         });
