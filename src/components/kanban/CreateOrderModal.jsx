@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { createOrder, searchProducts, getAsesoras, getClientesByAdvisor } from '../../services/supabase';
 import { useTheme } from '../../context/ThemeContext';
+import SearchableSelect from '../common/SearchableSelect';
+import { fixEncoding, normalizeForSearch } from '../../utils/stringUtils';
 
 // CreateOrderModal Component
 // Modal for creating a new order with dynamic items and automatic calculations.
@@ -282,24 +284,33 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
 
                     {/* Client Selection (Replaces PDF Upload) */}
                     <div>
-                        <label style={labelStyle}>Cliente *</label>
-                        <select
+                        <SearchableSelect
+                            label="Cliente *"
+                            placeholder={!asesora ? 'Primero selecciona una asesora' : (isLoadingClients ? 'Cargando clientes...' : 'Buscar cliente por nombre, cédula o RIF...')}
+                            options={clientesList}
                             value={cliente}
-                            onChange={(e) => setCliente(e.target.value)}
-                            style={inputStyle}
+                            onChange={setCliente}
                             disabled={!asesora}
-                        >
-                            <option value="">
-                                {!asesora
-                                    ? 'Primero selecciona una asesora'
-                                    : (isLoadingClients ? 'Cargando clientes...' : 'Seleccionar cliente')}
-                            </option>
-                            {clientesList.map(c => (
-                                <option key={c.id} value={c.id}>
-                                    {c.client_name} {c.business_name ? `(${c.business_name})` : ''}
-                                </option>
-                            ))}
-                        </select>
+                            isLoading={isLoadingClients}
+                            getOptionLabel={(c) => {
+                                const name = fixEncoding(c.client_name);
+                                const business = c.business_name ? ` (${fixEncoding(c.business_name)})` : '';
+                                const idInfo = [];
+                                if (c.cedula) idInfo.push(`CI: ${c.cedula}`);
+                                if (c.rif) idInfo.push(`RIF: ${c.rif}`);
+                                const idStr = idInfo.length > 0 ? ` - ${idInfo.join(', ')}` : '';
+                                return `${name}${business}${idStr}`;
+                            }}
+                            getOptionValue={(c) => c.id}
+                            filterOption={(c, query) => {
+                                const q = normalizeForSearch(query);
+                                const name = normalizeForSearch(c.client_name);
+                                const business = normalizeForSearch(c.business_name);
+                                const cedula = c.cedula ? c.cedula.toLowerCase() : '';
+                                const rif = c.rif ? c.rif.toLowerCase() : '';
+                                return name.includes(q) || business.includes(q) || cedula.includes(q) || rif.includes(q);
+                            }}
+                        />
                         {asesora && clientesList.length === 0 && !isLoadingClients && (
                             <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>
                                 Esta asesora no tiene clientes asignados.
