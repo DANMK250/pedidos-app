@@ -19,7 +19,7 @@ export default function Login() {
         let result;
         if (showForgotPassword) {
             const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password', // Ensure this route exists or just redirects to home
+                redirectTo: window.location.origin + '/reset-password',
             });
             if (error) {
                 setErrorMsg(error.message);
@@ -31,6 +31,19 @@ export default function Login() {
         }
 
         if (isSignUp) {
+            // Check if email already exists
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', email)
+                .maybeSingle();
+
+            if (existingProfile) {
+                setErrorMsg('❌ Este correo ya está registrado. Usa "Iniciar Sesión" en su lugar.');
+                setLoading(false);
+                return;
+            }
+
             result = await supabase.auth.signUp({
                 email,
                 password,
@@ -41,7 +54,7 @@ export default function Login() {
                 }
             });
 
-            // Also insert into profiles table with the selected role
+            // Also update profile with selected role
             if (!result.error && result.data.user) {
                 await supabase
                     .from('profiles')
