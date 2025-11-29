@@ -13,6 +13,9 @@ export default function DashboardHeader() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
+    // Debug: Log session to verify role
+    console.log('Session in DashboardHeader:', session);
+
     return (
         <>
             <header className="mobile-flex-col" style={{

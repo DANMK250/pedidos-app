@@ -7,6 +7,7 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
     const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
+    const [selectedRole, setSelectedRole] = useState('user'); // Role selection for signup
 
     const [showForgotPassword, setShowForgotPassword] = useState(false);
 
@@ -30,7 +31,23 @@ export default function Login() {
         }
 
         if (isSignUp) {
-            result = await supabase.auth.signUp({ email, password });
+            result = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        role: selectedRole
+                    }
+                }
+            });
+
+            // Also insert into profiles table with the selected role
+            if (!result.error && result.data.user) {
+                await supabase
+                    .from('profiles')
+                    .update({ role: selectedRole })
+                    .eq('id', result.data.user.id);
+            }
         } else {
             result = await supabase.auth.signInWithPassword({ email, password });
         }
@@ -94,6 +111,33 @@ export default function Login() {
                                 required
                                 style={{ width: '100%', boxSizing: 'border-box' }}
                             />
+                        </div>
+                    )}
+
+                    {isSignUp && !showForgotPassword && (
+                        <div style={{ textAlign: 'left' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                                Departamento
+                            </label>
+                            <select
+                                value={selectedRole}
+                                onChange={(e) => setSelectedRole(e.target.value)}
+                                required
+                                style={{
+                                    width: '100%',
+                                    boxSizing: 'border-box',
+                                    padding: '0.625rem',
+                                    fontSize: '1rem',
+                                    borderRadius: '6px',
+                                    border: '1px solid #d1d5db'
+                                }}
+                            >
+                                <option value="user">Usuario</option>
+                                <option value="coordinador">Coordinador</option>
+                                <option value="deposito">Depósito</option>
+                                <option value="cobranzas">Cobranzas</option>
+                                <option value="admin">Administrador</option>
+                            </select>
                         </div>
                     )}
 
