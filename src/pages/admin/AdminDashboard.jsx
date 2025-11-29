@@ -10,6 +10,7 @@ export default function AdminDashboard() {
         { title: 'Gestión de Asesoras', path: '/admin/advisors', icon: '👥', description: 'Crear, editar y eliminar asesoras' },
         { title: 'Gestión de Clientes', path: '/admin/clients', icon: '📋', description: 'Administrar clientes y sus datos' },
         { title: 'Gestión de Usuarios', path: '/admin/users', icon: '🔐', description: 'Administrar usuarios y roles' },
+        { title: 'Reportes y Estadísticas', path: '/admin/reports', icon: '📊', description: 'Rankings y métricas de ventas' },
     ];
 
     return (

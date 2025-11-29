@@ -11,6 +11,7 @@ export default function DashboardHeader() {
     const { theme, toggleTheme, colors } = useTheme();
     const userEmail = session?.user?.email || 'Daniel Armas'; // Fallback for mock
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     return (
         <>
@@ -60,70 +61,105 @@ export default function DashboardHeader() {
                         {theme === 'dark' ? '☀️' : '🌙'}
                     </button>
 
-                    {/* User Info */}
-                    <div style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '8px',
-                        backgroundColor: colors.primary,
-                        padding: '6px 12px',
-                        borderRadius: '6px'
-                    }}>
-                        <div style={{
-                            width: '24px',
-                            height: '24px',
-                            backgroundColor: 'rgba(255,255,255,0.2)',
-                            borderRadius: '50%',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '12px'
-                        }}>
-                            👤
-                        </div>
-                        <div className="mobile-hidden-text" style={{ display: 'flex', flexDirection: 'column' }}>
-                            <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>{userEmail}</span>
-                            <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>Tecnología</span>
-                        </div>
-                    </div>
-
-                    {/* Admin Panel Button (only for admins) */}
-                    {session?.user?.role === 'admin' && (
-                        <Link
-                            to="/admin"
+                    {/* User Profile Dropdown */}
+                    <div style={{ position: 'relative' }}>
+                        <button
+                            onClick={() => setIsProfileOpen(!isProfileOpen)}
                             style={{
-                                textDecoration: 'none',
-                                backgroundColor: '#8b5cf6',
-                                color: 'white',
-                                border: 'none',
-                                padding: '8px 12px',
-                                fontSize: '0.85rem',
-                                borderRadius: '6px',
-                                cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px'
+                                gap: '8px',
+                                backgroundColor: colors.primary,
+                                padding: '6px 12px',
+                                borderRadius: '6px',
+                                border: 'none',
+                                cursor: 'pointer'
                             }}
                         >
-                            ⚙️ <span className="mobile-hidden-text">Admin</span>
-                        </Link>
-                    )}
+                            <div style={{
+                                width: '24px',
+                                height: '24px',
+                                backgroundColor: 'rgba(255,255,255,0.2)',
+                                borderRadius: '50%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '12px'
+                            }}>
+                                👤
+                            </div>
+                            <div className="mobile-hidden-text" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>{userEmail}</span>
+                                <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
+                                    {session?.user?.role === 'admin' ? 'Administrador' : 'Tecnología'}
+                                </span>
+                            </div>
+                            <span style={{ color: 'white', fontSize: '0.8rem', marginLeft: '4px' }}>▼</span>
+                        </button>
 
-                    {/* Logout Button */}
-                    <button
-                        onClick={signOut}
-                        style={{
-                            backgroundColor: 'transparent',
-                            color: colors.textMuted,
-                            border: `1px solid ${colors.border}`,
-                            padding: '8px 12px',
-                            fontSize: '0.85rem',
-                            borderRadius: '6px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        ↪ <span className="mobile-hidden-text">Salir</span>
-                    </button>
+                        {/* Dropdown Menu */}
+                        {isProfileOpen && (
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                right: 0,
+                                marginTop: '8px',
+                                backgroundColor: colors.bgSecondary,
+                                border: `1px solid ${colors.border}`,
+                                borderRadius: '8px',
+                                padding: '8px',
+                                minWidth: '200px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                zIndex: 100
+                            }}>
+                                {session?.user?.role === 'admin' && (
+                                    <Link
+                                        to="/admin"
+                                        onClick={() => setIsProfileOpen(false)}
+                                        style={{
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            gap: '8px',
+                                            padding: '10px 12px',
+                                            textDecoration: 'none',
+                                            color: colors.text,
+                                            borderRadius: '6px',
+                                            fontSize: '0.9rem',
+                                            transition: 'background-color 0.2s'
+                                        }}
+                                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#334155' : '#f1f5f9'}
+                                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                    >
+                                        ⚙️ Panel de Administración
+                                    </Link>
+                                )}
+                                <button
+                                    onClick={() => {
+                                        setIsProfileOpen(false);
+                                        signOut();
+                                    }}
+                                    style={{
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        gap: '8px',
+                                        width: '100%',
+                                        padding: '10px 12px',
+                                        border: 'none',
+                                        backgroundColor: 'transparent',
+                                        color: '#ef4444',
+                                        borderRadius: '6px',
+                                        fontSize: '0.9rem',
+                                        cursor: 'pointer',
+                                        textAlign: 'left'
+                                    }}
+                                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = theme === 'dark' ? '#334155' : '#f1f5f9'}
+                                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                                >
+                                    ↪ Cerrar Sesión
+                                </button>
+                            </div>
+                        )}
+                    </div>
 
                     {/* New Order Button */}
                     <button

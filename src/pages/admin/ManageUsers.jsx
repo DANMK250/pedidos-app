@@ -49,6 +49,19 @@ export default function ManageUsers() {
         setCreatingUser(true);
 
         try {
+            // Check if user already exists in profiles
+            const { data: existingUser } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('email', newUserEmail)
+                .maybeSingle();
+
+            if (existingUser) {
+                alert('Error: Ya existe un usuario registrado con este correo electrónico.');
+                setCreatingUser(false);
+                return;
+            }
+
             // Create a temporary client with memory storage to avoid logging out the admin
             const tempSupabase = createClient(
                 import.meta.env.VITE_SUPABASE_URL,
@@ -67,7 +80,14 @@ export default function ManageUsers() {
                 password: newUserPassword
             });
 
-            if (error) throw error;
+            if (error) {
+                if (error.message.includes('already registered')) {
+                    alert('Error: Este correo ya está registrado en el sistema de autenticación.');
+                } else {
+                    throw error;
+                }
+                return;
+            }
 
             if (data.user) {
                 alert('Usuario creado exitosamente. ' + (data.session ? 'El usuario ha sido registrado.' : 'Se ha enviado un correo de confirmación.'));
@@ -159,6 +179,9 @@ export default function ManageUsers() {
                                         >
                                             <option value="user">Usuario</option>
                                             <option value="admin">Administrador</option>
+                                            <option value="coordinador">Coordinador</option>
+                                            <option value="deposito">Depósito</option>
+                                            <option value="cobranzas">Cobranzas</option>
                                         </select>
                                     </td>
                                 </tr>

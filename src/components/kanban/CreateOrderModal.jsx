@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createOrder, searchProducts, getAsesoras, getClientesByAdvisor } from '../../services/supabase';
+import { createOrder, searchProducts, getAsesoras, getClientesByAdvisor, supabase } from '../../services/supabase';
 import { useTheme } from '../../context/ThemeContext';
 import SearchableSelect from '../common/SearchableSelect';
 import { fixEncoding, normalizeForSearch } from '../../utils/stringUtils';
@@ -20,6 +20,14 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
     const [tipoPedido, setTipoPedido] = useState('Accesorios');
     const [total, setTotal] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isCreatingClient, setIsCreatingClient] = useState(false);
+    const [newClientData, setNewClientData] = useState({
+        client_name: '',
+        business_name: '',
+        rif_cedula: '',
+        phone: '',
+        address: ''
+    });
 
     // Data State
     const [asesorasList, setAsesorasList] = useState([]);
@@ -123,6 +131,43 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
             } : item
         ));
         setSuggestions(prev => ({ ...prev, [itemId]: [] }));
+    };
+
+    // Handle new client creation
+    const handleCreateClient = async () => {
+        if (!newClientData.client_name) {
+            alert('El nombre del cliente es obligatorio');
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase
+                .from('clientes')
+                .insert([{
+                    ...newClientData,
+                    advisor_id: asesora
+                }])
+                .select()
+                .single();
+
+            if (error) throw error;
+
+            // Add to list and select it
+            setClientesList([...clientesList, data]);
+            setCliente(data.id);
+            setIsCreatingClient(false);
+            setNewClientData({
+                client_name: '',
+                business_name: '',
+                rif_cedula: '',
+                phone: '',
+                address: ''
+            });
+            alert('Cliente creado exitosamente');
+        } catch (error) {
+            console.error('Error creating client:', error);
+            alert('Error al crear cliente: ' + error.message);
+        }
     };
 
     // Handle form submission
@@ -284,66 +329,183 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
 
                     {/* Client Selection (Replaces PDF Upload) */}
                     <div>
-                        <SearchableSelect
-                            label="Cliente *"
-                            placeholder={!asesora ? 'Primero selecciona una asesora' : (isLoadingClients ? 'Cargando clientes...' : 'Buscar cliente por nombre, cédula o RIF...')}
-                            options={clientesList}
-                            value={cliente}
-                            onChange={setCliente}
-                            disabled={!asesora}
-                            isLoading={isLoadingClients}
-                            getOptionLabel={(c) => {
-                                const name = fixEncoding(c.client_name);
-                                const business = c.business_name ? ` (${fixEncoding(c.business_name)})` : '';
-                                const idStr = c.rif_cedula ? ` - ${c.rif_cedula}` : '';
-                                return `${name}${business}${idStr}`;
-                            }}
-                            getOptionValue={(c) => c.id}
-                            filterOption={(c, query) => {
-                                const q = normalizeForSearch(query);
-                                const name = normalizeForSearch(c.client_name);
-                                const business = normalizeForSearch(c.business_name);
-                                const idDoc = c.rif_cedula ? c.rif_cedula.toLowerCase() : '';
-                                return name.includes(q) || business.includes(q) || idDoc.includes(q);
-                            }}
-                        />
-                        {asesora && clientesList.length === 0 && !isLoadingClients && (
-                            <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>
-                                Esta asesora no tiene clientes asignados.
-                            </div>
-                        )}
+                        {!isCreatingClient ? (
+                            <>
+                                <div style={{ display: 'flex', alignItems: 'flex-end', gap: '8px' }}>
+                                    <div style={{ flex: 1 }}>
+                                        <SearchableSelect
+                                            label="Cliente *"
+                                            placeholder={!asesora ? 'Primero selecciona una asesora' : (isLoadingClients ? 'Cargando clientes...' : 'Buscar cliente por nombre, cédula o RIF...')}
+                                            options={clientesList}
+                                            value={cliente}
+                                            onChange={setCliente}
+                                            disabled={!asesora}
+                                            isLoading={isLoadingClients}
+                                            getOptionLabel={(c) => {
+                                                const name = fixEncoding(c.client_name);
+                                                const business = c.business_name ? ` (${fixEncoding(c.business_name)})` : '';
+                                                const idStr = c.rif_cedula ? ` - ${c.rif_cedula}` : '';
+                                                return `${name}${business}${idStr}`;
+                                            }}
+                                            getOptionValue={(c) => c.id}
+                                            filterOption={(c, query) => {
+                                                const q = normalizeForSearch(query);
+                                                const name = normalizeForSearch(c.client_name);
+                                                const business = normalizeForSearch(c.business_name);
+                                                const idDoc = c.rif_cedula ? c.rif_cedula.toLowerCase() : '';
+                                                return name.includes(q) || business.includes(q) || idDoc.includes(q);
+                                            }}
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => setIsCreatingClient(true)}
+                                        disabled={!asesora}
+                                        style={{
+                                            padding: '10px 12px',
+                                            backgroundColor: !asesora ? colors.bgTertiary : colors.primary,
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: !asesora ? 'not-allowed' : 'pointer',
+                                            height: '42px', // Match input height roughly
+                                            whiteSpace: 'nowrap',
+                                            fontSize: '0.9rem',
+                                            fontWeight: '600'
+                                        }}
+                                        title="Crear nuevo cliente"
+                                    >
+                                        + Nuevo
+                                    </button>
+                                </div>
+                                {asesora && clientesList.length === 0 && !isLoadingClients && (
+                                    <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>
+                                        Esta asesora no tiene clientes asignados.
+                                    </div>
+                                )}
 
-                        {/* Selected Client Details */}
-                        {cliente && (() => {
-                            const selectedClient = clientesList.find(c => c.id === cliente);
-                            if (!selectedClient) return null;
-                            return (
-                                <div style={{
-                                    marginTop: '12px',
-                                    padding: '12px',
-                                    backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-                                    borderRadius: '6px',
-                                    border: `1px solid ${colors.border}`,
-                                    fontSize: '0.9rem',
-                                    color: colors.text
-                                }}>
-                                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                                        <div>
-                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Razón Social:</span> {fixEncoding(selectedClient.business_name) || '-'}
+                                {/* Selected Client Details */}
+                                {cliente && (() => {
+                                    const selectedClient = clientesList.find(c => c.id === cliente);
+                                    if (!selectedClient) return null;
+                                    return (
+                                        <div style={{
+                                            marginTop: '12px',
+                                            padding: '12px',
+                                            backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                            borderRadius: '6px',
+                                            border: `1px solid ${colors.border}`,
+                                            fontSize: '0.9rem',
+                                            color: colors.text
+                                        }}>
+                                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                                                <div>
+                                                    <span style={{ fontWeight: '600', color: colors.textMuted }}>Razón Social:</span> {fixEncoding(selectedClient.business_name) || '-'}
+                                                </div>
+                                                <div>
+                                                    <span style={{ fontWeight: '600', color: colors.textMuted }}>Documento:</span> {selectedClient.rif_cedula || '-'}
+                                                </div>
+                                                <div>
+                                                    <span style={{ fontWeight: '600', color: colors.textMuted }}>Teléfono:</span> {selectedClient.phone || '-'}
+                                                </div>
+                                                <div>
+                                                    <span style={{ fontWeight: '600', color: colors.textMuted }}>Dirección:</span> {fixEncoding(selectedClient.address) || '-'}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Documento:</span> {selectedClient.rif_cedula || '-'}
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Teléfono:</span> {selectedClient.phone || '-'}
-                                        </div>
-                                        <div>
-                                            <span style={{ fontWeight: '600', color: colors.textMuted }}>Dirección:</span> {fixEncoding(selectedClient.address) || '-'}
-                                        </div>
+                                    );
+                                })()}
+                            </>
+                        ) : (
+                            <div style={{
+                                backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                border: `1px solid ${colors.border}`
+                            }}>
+                                <h3 style={{ marginTop: 0, marginBottom: '16px', fontSize: '1rem', color: colors.text }}>Nuevo Cliente para {asesorasList.find(a => a.id === asesora)?.name}</h3>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                                    <div>
+                                        <label style={labelStyle}>Nombre *</label>
+                                        <input
+                                            type="text"
+                                            value={newClientData.client_name}
+                                            onChange={(e) => setNewClientData({ ...newClientData, client_name: e.target.value })}
+                                            style={inputStyle}
+                                            placeholder="Nombre del cliente"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Razón Social</label>
+                                        <input
+                                            type="text"
+                                            value={newClientData.business_name}
+                                            onChange={(e) => setNewClientData({ ...newClientData, business_name: e.target.value })}
+                                            style={inputStyle}
+                                            placeholder="Nombre de la empresa"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>RIF / Cédula</label>
+                                        <input
+                                            type="text"
+                                            value={newClientData.rif_cedula}
+                                            onChange={(e) => setNewClientData({ ...newClientData, rif_cedula: e.target.value })}
+                                            style={inputStyle}
+                                            placeholder="V-12345678"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label style={labelStyle}>Teléfono</label>
+                                        <input
+                                            type="text"
+                                            value={newClientData.phone}
+                                            onChange={(e) => setNewClientData({ ...newClientData, phone: e.target.value })}
+                                            style={inputStyle}
+                                            placeholder="0414-1234567"
+                                        />
+                                    </div>
+                                    <div style={{ gridColumn: 'span 2' }}>
+                                        <label style={labelStyle}>Dirección</label>
+                                        <input
+                                            type="text"
+                                            value={newClientData.address}
+                                            onChange={(e) => setNewClientData({ ...newClientData, address: e.target.value })}
+                                            style={inputStyle}
+                                            placeholder="Dirección completa"
+                                        />
                                     </div>
                                 </div>
-                            );
-                        })()}
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', marginTop: '16px' }}>
+                                    <button
+                                        onClick={() => setIsCreatingClient(false)}
+                                        style={{
+                                            padding: '8px 16px',
+                                            backgroundColor: 'transparent',
+                                            border: `1px solid ${colors.border}`,
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            color: colors.text
+                                        }}
+                                    >
+                                        Cancelar
+                                    </button>
+                                    <button
+                                        onClick={handleCreateClient}
+                                        style={{
+                                            padding: '8px 16px',
+                                            backgroundColor: colors.primary,
+                                            border: 'none',
+                                            borderRadius: '6px',
+                                            cursor: 'pointer',
+                                            color: 'white',
+                                            fontWeight: '600'
+                                        }}
+                                    >
+                                        Guardar Cliente
+                                    </button>
+                                </div>
+                            </div>
+                        )}
                     </div>
 
                     {/* Items Section */}

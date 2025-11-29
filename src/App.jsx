@@ -13,6 +13,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ManageAdvisors from './pages/admin/ManageAdvisors';
 import ManageClients from './pages/admin/ManageClients';
 import ManageUsers from './pages/admin/ManageUsers';
+import AdminReports from './pages/admin/AdminReports';
 
 // Define a wrapper component for protected routes.
 // This component checks if a user is authenticated.
@@ -87,6 +88,11 @@ export default function App() {
             <Route path="/admin/users" element={
               <AdminRoute>
                 <ManageUsers />
+              </AdminRoute>
+            } />
+            <Route path="/admin/reports" element={
+              <AdminRoute>
+                <AdminReports />
               </AdminRoute>
             } />
 

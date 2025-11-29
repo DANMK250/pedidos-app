@@ -1,5 +1,6 @@
 import React from 'react';
 import DashboardHeader from '../components/DashboardHeader';
+import { useAuth } from '../context/AuthContext';
 import KanbanBoard from '../components/kanban/KanbanBoard';
 import { useTheme } from '../context/ThemeContext';
 
@@ -55,6 +56,8 @@ export default function Home() {
                         />
                     </div>
                 </div>
+
+
 
                 {/* Filter Toggle Button */}
                 <button
