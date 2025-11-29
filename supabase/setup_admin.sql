@@ -10,14 +10,16 @@ create table if not exists public.profiles (
 alter table public.profiles enable row level security;
 
 -- 3. Policies
--- Allow users to view their own profile (and maybe admins to view all, but for now let's keep it simple)
-create policy "Users can view own profile" on public.profiles for select using (auth.uid() = id);
-create policy "Users can update own profile" on public.profiles for update using (auth.uid() = id);
+-- Allow users to view their own profile
+create policy "Allow users to view own profile" on public.profiles for select using (auth.uid() = id);
 
--- Allow admins to view all profiles (we'll need this later)
--- create policy "Admins can view all profiles" on public.profiles for select using (
---   exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
--- );
+-- Allow users to update their own profile
+create policy "Allow users to update own profile" on public.profiles for update using (auth.uid() = id);
+
+-- Allow admins to view all profiles
+create policy "Allow admins to view all profiles" on public.profiles for select using (
+  exists (select 1 from public.profiles where id = auth.uid() and role = 'admin')
+);
 
 -- 4. Trigger to create profile on signup
 create or replace function public.handle_new_user()

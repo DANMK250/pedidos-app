@@ -2,11 +2,16 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTheme } from '../../context/ThemeContext';
 import { supabase } from '../../services/supabase';
+import { createClient } from '@supabase/supabase-js';
 
 export default function ManageUsers() {
     const { colors, theme } = useTheme();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [newUserEmail, setNewUserEmail] = useState('');
+    const [newUserPassword, setNewUserPassword] = useState('');
+    const [creatingUser, setCreatingUser] = useState(false);
 
     useEffect(() => {
         loadUsers();
@@ -39,17 +44,73 @@ export default function ManageUsers() {
         }
     };
 
+    const handleCreateUser = async (e) => {
+        e.preventDefault();
+        setCreatingUser(true);
+
+        try {
+            // Create a temporary client with memory storage to avoid logging out the admin
+            const tempSupabase = createClient(
+                import.meta.env.VITE_SUPABASE_URL,
+                import.meta.env.VITE_SUPABASE_ANON_KEY,
+                {
+                    auth: {
+                        persistSession: false, // Don't persist session to localStorage
+                        autoRefreshToken: false,
+                        detectSessionInUrl: false
+                    }
+                }
+            );
+
+            const { data, error } = await tempSupabase.auth.signUp({
+                email: newUserEmail,
+                password: newUserPassword
+            });
+
+            if (error) throw error;
+
+            if (data.user) {
+                alert('Usuario creado exitosamente. ' + (data.session ? 'El usuario ha sido registrado.' : 'Se ha enviado un correo de confirmación.'));
+                setShowCreateModal(false);
+                setNewUserEmail('');
+                setNewUserPassword('');
+                // Wait a bit for the trigger to create the profile
+                setTimeout(loadUsers, 1000);
+            }
+        } catch (error) {
+            alert('Error al crear usuario: ' + error.message);
+        } finally {
+            setCreatingUser(false);
+        }
+    };
+
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.bgPrimary, padding: '24px' }}>
             <Link to="/admin" style={{ color: colors.primary, textDecoration: 'none' }}>
                 ← Volver al Panel
             </Link>
 
-            <div style={{ marginTop: '16px', marginBottom: '24px' }}>
-                <h1 style={{ color: colors.text, fontSize: '1.75rem' }}>Gestión de Usuarios</h1>
-                <p style={{ color: colors.textMuted, marginTop: '8px' }}>
-                    Administra los roles de los usuarios del sistema
-                </p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '24px' }}>
+                <div>
+                    <h1 style={{ color: colors.text, fontSize: '1.75rem' }}>Gestión de Usuarios</h1>
+                    <p style={{ color: colors.textMuted, marginTop: '8px' }}>
+                        Administra los roles de los usuarios del sistema
+                    </p>
+                </div>
+                <button
+                    onClick={() => setShowCreateModal(true)}
+                    style={{
+                        padding: '10px 20px',
+                        backgroundColor: colors.primary,
+                        color: 'white',
+                        border: 'none',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        fontWeight: '600'
+                    }}
+                >
+                    + Nuevo Usuario
+                </button>
             </div>
 
             {loading ? (
@@ -104,6 +165,92 @@ export default function ManageUsers() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Create User Modal */}
+            {showCreateModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: colors.bgSecondary,
+                        padding: '24px',
+                        borderRadius: '8px',
+                        width: '400px',
+                        maxWidth: '90%'
+                    }}>
+                        <h2 style={{ color: colors.text, marginBottom: '16px' }}>Crear Nuevo Usuario</h2>
+                        <form onSubmit={handleCreateUser}>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: colors.text }}>Email</label>
+                                <input
+                                    type="email"
+                                    value={newUserEmail}
+                                    onChange={(e) => setNewUserEmail(e.target.value)}
+                                    required
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: `1px solid ${colors.border}`,
+                                        backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                        color: colors.text
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: colors.text }}>Contraseña</label>
+                                <input
+                                    type="password"
+                                    value={newUserPassword}
+                                    onChange={(e) => setNewUserPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: `1px solid ${colors.border}`,
+                                        backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                        color: colors.text
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    style={{ padding: '8px 16px', cursor: 'pointer' }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={creatingUser}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: colors.primary,
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {creatingUser ? 'Creando...' : 'Crear Usuario'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
         </div>

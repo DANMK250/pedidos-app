@@ -8,12 +8,27 @@ export default function Login() {
     const [errorMsg, setErrorMsg] = useState('');
     const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
 
+    const [showForgotPassword, setShowForgotPassword] = useState(false);
+
     const handleAuth = async (e) => {
         e.preventDefault();
         setLoading(true);
         setErrorMsg('');
 
         let result;
+        if (showForgotPassword) {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: window.location.origin + '/reset-password', // Ensure this route exists or just redirects to home
+            });
+            if (error) {
+                setErrorMsg(error.message);
+            } else {
+                setErrorMsg('✅ Se ha enviado un correo para restablecer tu contraseña.');
+            }
+            setLoading(false);
+            return;
+        }
+
         if (isSignUp) {
             result = await supabase.auth.signUp({ email, password });
         } else {
@@ -43,10 +58,12 @@ export default function Login() {
         }}>
             <div className="card">
                 <h2 style={{ marginBottom: '0.5rem', fontSize: '1.8rem', fontWeight: '700' }}>
-                    {isSignUp ? 'Crear Cuenta' : 'Bienvenido'}
+                    {showForgotPassword ? 'Recuperar Contraseña' : (isSignUp ? 'Crear Cuenta' : 'Bienvenido')}
                 </h2>
                 <p style={{ marginBottom: '1.5rem', color: '#6b7280', fontSize: '0.95rem' }}>
-                    {isSignUp ? 'Ingresa tus datos para registrarte' : 'Ingresa a tu cuenta para continuar'}
+                    {showForgotPassword
+                        ? 'Ingresa tu correo para recibir instrucciones'
+                        : (isSignUp ? 'Ingresa tus datos para registrarte' : 'Ingresa a tu cuenta para continuar')}
                 </p>
 
                 <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -64,19 +81,21 @@ export default function Login() {
                         />
                     </div>
 
-                    <div style={{ textAlign: 'left' }}>
-                        <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
-                            Contraseña
-                        </label>
-                        <input
-                            type="password"
-                            placeholder="••••••••"
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            required
-                            style={{ width: '100%', boxSizing: 'border-box' }}
-                        />
-                    </div>
+                    {!showForgotPassword && (
+                        <div style={{ textAlign: 'left' }}>
+                            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                                Contraseña
+                            </label>
+                            <input
+                                type="password"
+                                placeholder="••••••••"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                                style={{ width: '100%', boxSizing: 'border-box' }}
+                            />
+                        </div>
+                    )}
 
                     {errorMsg && (
                         <div style={{
@@ -102,25 +121,43 @@ export default function Login() {
                             width: '100%'
                         }}
                     >
-                        {loading ? 'Procesando...' : (isSignUp ? 'Registrarse' : 'Iniciar Sesión')}
+                        {loading ? 'Procesando...' : (showForgotPassword ? 'Enviar Correo' : (isSignUp ? 'Registrarse' : 'Iniciar Sesión'))}
                     </button>
                 </form>
 
-                <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: '#4b5563' }}>
-                    {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                <div style={{ marginTop: '1.5rem', fontSize: '0.9rem', color: '#4b5563', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {!showForgotPassword && (
+                        <div>
+                            {isSignUp ? '¿Ya tienes cuenta?' : '¿No tienes cuenta?'}
+                            <button
+                                onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); }}
+                                style={{
+                                    background: 'none',
+                                    border: 'none',
+                                    color: '#3f75cc',
+                                    fontWeight: 600,
+                                    cursor: 'pointer',
+                                    padding: '0 0.25rem',
+                                    textDecoration: 'underline'
+                                }}
+                            >
+                                {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                            </button>
+                        </div>
+                    )}
+
                     <button
-                        onClick={() => { setIsSignUp(!isSignUp); setErrorMsg(''); }}
+                        onClick={() => { setShowForgotPassword(!showForgotPassword); setErrorMsg(''); }}
                         style={{
                             background: 'none',
                             border: 'none',
-                            color: '#3f75cc',
-                            fontWeight: 600,
+                            color: '#6b7280',
+                            fontSize: '0.85rem',
                             cursor: 'pointer',
-                            padding: '0 0.25rem',
                             textDecoration: 'underline'
                         }}
                     >
-                        {isSignUp ? 'Inicia Sesión' : 'Regístrate'}
+                        {showForgotPassword ? 'Volver al inicio de sesión' : '¿Olvidaste tu contraseña?'}
                     </button>
                 </div>
             </div>

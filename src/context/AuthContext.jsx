@@ -12,9 +12,30 @@ export const AuthProvider = ({ children }) => {
     useEffect(() => {
         // Simplified initialization - just get the session, don't fetch profile yet
         const initSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            setLoading(false);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+
+                if (session?.user) {
+                    // Restore profile fetching on reload to persist admin role
+                    const { data: profile } = await supabase
+                        .from('profiles')
+                        .select('role')
+                        .eq('id', session.user.id)
+                        .maybeSingle();
+
+                    if (profile) {
+                        session.user.role = profile.role || 'user';
+                    } else {
+                        session.user.role = 'user';
+                    }
+                }
+
+                setSession(session);
+            } catch (error) {
+                console.error('Error initializing session:', error);
+            } finally {
+                setLoading(false);
+            }
         };
 
         initSession();
