@@ -123,6 +123,33 @@ export async function deleteOrder(orderId) {
 }
 
 /**
+ * Get all active advisors
+ * @returns {Object} - { data, error }
+ */
+export async function getAsesoras() {
+    const { data, error } = await supabase
+        .from('asesoras')
+        .select('*')
+        .eq('active', true)
+        .order('name');
+    return { data, error };
+}
+
+/**
+ * Get clients by advisor ID
+ * @param {string} advisorId
+ * @returns {Object} - { data, error }
+ */
+export async function getClientesByAdvisor(advisorId) {
+    const { data, error } = await supabase
+        .from('clientes')
+        .select('*')
+        .eq('advisor_id', advisorId)
+        .order('client_name');
+    return { data, error };
+}
+
+/**
  * Search products by code or description
  * @param {string} query - The search query
  * @returns {Object} - { data, error }

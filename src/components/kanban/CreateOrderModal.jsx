@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createOrder, searchProducts } from '../../services/supabase';
+import { createOrder, searchProducts, getAsesoras, getClientesByAdvisor } from '../../services/supabase';
 import { useTheme } from '../../context/ThemeContext';
 
 // CreateOrderModal Component
@@ -11,6 +11,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
 
     // State for form fields
     const [asesora, setAsesora] = useState('');
+    const [cliente, setCliente] = useState(''); // New client state
     const [items, setItems] = useState([{ id: 1, description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
     const [canal, setCanal] = useState('Otro');
     const [moneda, setMoneda] = useState('USD');
@@ -18,10 +19,45 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
     const [total, setTotal] = useState(0);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
+    // Data State
+    const [asesorasList, setAsesorasList] = useState([]);
+    const [clientesList, setClientesList] = useState([]);
+    const [isLoadingClients, setIsLoadingClients] = useState(false);
+
     // Autocomplete State
     const [suggestions, setSuggestions] = useState({}); // { itemId: [products] }
-    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState({}); // { itemId: index }
     const wrapperRef = useRef(null);
+
+    // Load Asesoras on mount
+    useEffect(() => {
+        async function loadAsesoras() {
+            const { data, error } = await getAsesoras();
+            if (!error && data) {
+                setAsesorasList(data);
+            }
+        }
+        loadAsesoras();
+    }, []);
+
+    // Load Clientes when Asesora changes
+    useEffect(() => {
+        async function loadClientes() {
+            if (!asesora) {
+                setClientesList([]);
+                setCliente('');
+                return;
+            }
+
+            setIsLoadingClients(true);
+            const { data, error } = await getClientesByAdvisor(asesora);
+            setIsLoadingClients(false);
+
+            if (!error && data) {
+                setClientesList(data);
+            }
+        }
+        loadClientes();
+    }, [asesora]);
 
     // Calculate total whenever items change
     useEffect(() => {
@@ -95,6 +131,11 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
             return;
         }
 
+        if (!cliente) {
+            alert('Por favor selecciona un cliente');
+            return;
+        }
+
         if (items.length === 0 || items.every(item => !item.description)) {
             alert('Por favor agrega al menos un ítem con descripción');
             return;
@@ -103,9 +144,18 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
         setIsSubmitting(true);
 
         try {
+            // Get advisor name for display (since we store ID)
+            const selectedAdvisorObj = asesorasList.find(a => a.id === asesora);
+            const advisorName = selectedAdvisorObj ? selectedAdvisorObj.name : 'Unknown';
+
+            // Get client name
+            const selectedClientObj = clientesList.find(c => c.id === cliente);
+            const clientName = selectedClientObj ? selectedClientObj.client_name : 'Unknown';
+
             // Prepare order data
             const orderData = {
-                asesora,
+                asesora: advisorName, // Storing name for backward compatibility
+                customer: clientName, // Storing client name
                 items: items.filter(item => item.description), // Only include items with description
                 total,
                 tipoPedido,
@@ -127,6 +177,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
 
             // Reset form
             setAsesora('');
+            setCliente('');
             setItems([{ id: 1, description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
             setCanal('Otro');
             setMoneda('USD');
@@ -214,7 +265,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                 {/* Body */}
                 <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
 
-                    {/* Asesora */}
+                    {/* Asesora Selection */}
                     <div>
                         <label style={labelStyle}>Asesora *</label>
                         <select
@@ -223,28 +274,37 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
                             style={inputStyle}
                         >
                             <option value="">Seleccionar asesora</option>
-                            <option value="Alexandra Duarte">Alexandra Duarte</option>
-                            <option value="Dimayir Perez">Dimayir Perez</option>
-                            <option value="Brigith Ortiz">Brigith Ortiz</option>
+                            {asesorasList.map(a => (
+                                <option key={a.id} value={a.id}>{a.name}</option>
+                            ))}
                         </select>
                     </div>
 
-                    {/* PDF Upload */}
+                    {/* Client Selection (Replaces PDF Upload) */}
                     <div>
-                        <label style={labelStyle}>Archivo PDF del Pedido</label>
-                        <div style={{
-                            border: `2px dashed ${colors.border}`,
-                            borderRadius: '8px',
-                            padding: '32px',
-                            textAlign: 'center',
-                            backgroundColor: theme === 'dark' ? 'rgba(255,255,255,0.05)' : '#f8fafc',
-                            cursor: 'pointer',
-                            transition: 'all 0.2s'
-                        }}>
-                            <div style={{ fontSize: '2rem', color: colors.textMuted, marginBottom: '8px' }}>⬆️</div>
-                            <div style={{ fontWeight: '500', color: colors.text }}>Haz clic para adjuntar PDF</div>
-                            <div style={{ fontSize: '0.8rem', color: colors.textMuted }}>Solo archivos PDF (opcional)</div>
-                        </div>
+                        <label style={labelStyle}>Cliente *</label>
+                        <select
+                            value={cliente}
+                            onChange={(e) => setCliente(e.target.value)}
+                            style={inputStyle}
+                            disabled={!asesora}
+                        >
+                            <option value="">
+                                {!asesora
+                                    ? 'Primero selecciona una asesora'
+                                    : (isLoadingClients ? 'Cargando clientes...' : 'Seleccionar cliente')}
+                            </option>
+                            {clientesList.map(c => (
+                                <option key={c.id} value={c.id}>
+                                    {c.client_name} {c.business_name ? `(${c.business_name})` : ''}
+                                </option>
+                            ))}
+                        </select>
+                        {asesora && clientesList.length === 0 && !isLoadingClients && (
+                            <div style={{ fontSize: '0.8rem', color: '#ef4444', marginTop: '4px' }}>
+                                Esta asesora no tiene clientes asignados.
+                            </div>
+                        )}
                     </div>
 
                     {/* Items Section */}
