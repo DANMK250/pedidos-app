@@ -7,6 +7,12 @@ import Login from './pages/Login';
 import Home from './pages/Home';
 // Import ThemeProvider for dark mode
 import { ThemeProvider } from './context/ThemeContext';
+// Import Admin components
+import AdminRoute from './components/AdminRoute';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import ManageAdvisors from './pages/admin/ManageAdvisors';
+import ManageClients from './pages/admin/ManageClients';
+import ManageUsers from './pages/admin/ManageUsers';
 
 // Define a wrapper component for protected routes.
 // This component checks if a user is authenticated.
@@ -60,6 +66,28 @@ export default function App() {
               <ProtectedRoute>
                 <Home />
               </ProtectedRoute>
+            } />
+
+            {/* Admin Routes */}
+            <Route path="/admin" element={
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
+            } />
+            <Route path="/admin/advisors" element={
+              <AdminRoute>
+                <ManageAdvisors />
+              </AdminRoute>
+            } />
+            <Route path="/admin/clients" element={
+              <AdminRoute>
+                <ManageClients />
+              </AdminRoute>
+            } />
+            <Route path="/admin/users" element={
+              <AdminRoute>
+                <ManageUsers />
+              </AdminRoute>
             } />
 
             {/* Fallback route: Redirect any unknown paths to Home (which will redirect to Login if needed). */}

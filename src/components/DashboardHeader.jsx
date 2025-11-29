@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import CreateOrderModal from './kanban/CreateOrderModal';
+import { Link } from 'react-router-dom';
 
 // DashboardHeader Component
 // Top navigation bar with user info and actions.
@@ -85,6 +86,28 @@ export default function DashboardHeader() {
                             <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>Tecnología</span>
                         </div>
                     </div>
+
+                    {/* Admin Panel Button (only for admins) */}
+                    {session?.user?.role === 'admin' && (
+                        <Link
+                            to="/admin"
+                            style={{
+                                textDecoration: 'none',
+                                backgroundColor: '#8b5cf6',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 12px',
+                                fontSize: '0.85rem',
+                                borderRadius: '6px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                            }}
+                        >
+                            ⚙️ <span className="mobile-hidden-text">Admin</span>
+                        </Link>
+                    )}
 
                     {/* Logout Button */}
                     <button
