@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createOrder, searchProducts, getAsesoras, getClientesByAdvisor, supabase } from '../../services/supabase';
+import { createOrder, updateOrder, searchProducts, getAsesoras, getClientesByAdvisor, supabase } from '../../services/supabase';
 import { useTheme } from '../../context/ThemeContext';
 import SearchableSelect from '../common/SearchableSelect';
 import { fixEncoding, normalizeForSearch } from '../../utils/stringUtils';
 
 // CreateOrderModal Component
 // Modal for creating a new order with dynamic items and automatic calculations.
-export default function CreateOrderModal({ isOpen, onClose, onOrderCreated }) {
+export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, orderToEdit }) {
     const { colors, theme } = useTheme();
 
     if (!isOpen) return null;
