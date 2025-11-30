@@ -116,10 +116,10 @@ export default function AdminReports() {
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.bgPrimary, padding: '24px' }}>
             <div style={{ marginBottom: '24px' }}>
-                <Link to="/admin" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.9rem' }}>
+                <Link to="/admin" style={{ color: 'white', textDecoration: 'none', fontSize: '0.9rem', opacity: 0.8 }}>
                     ← Volver al Panel
                 </Link>
-                <h1 style={{ color: colors.text, marginTop: '12px', fontSize: '1.75rem' }}>Reportes y Estadísticas</h1>
+                <h1 style={{ color: 'white', marginTop: '12px', fontSize: '1.75rem' }}>Reportes y Estadísticas</h1>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '24px' }}>

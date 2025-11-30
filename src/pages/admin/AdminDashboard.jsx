@@ -21,11 +21,11 @@ export default function AdminDashboard() {
         }}>
             {/* Header */}
             <div style={{ marginBottom: '32px' }}>
-                <Link to="/" style={{ color: colors.primary, textDecoration: 'none', fontSize: '0.9rem' }}>
+                <Link to="/" style={{ color: 'white', textDecoration: 'none', fontSize: '0.9rem', opacity: 0.8 }}>
                     ← Volver al Dashboard
                 </Link>
-                <h1 style={{ color: colors.text, marginTop: '16px', fontSize: '2rem' }}>Panel de Administración</h1>
-                <p style={{ color: colors.textMuted, marginTop: '8px' }}>
+                <h1 style={{ color: 'white', marginTop: '16px', fontSize: '2rem' }}>Panel de Administración</h1>
+                <p style={{ color: 'rgba(255, 255, 255, 0.8)', marginTop: '8px' }}>
                     Bienvenido, {session?.user?.email}
                 </p>
             </div>

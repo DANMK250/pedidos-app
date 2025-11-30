@@ -2,6 +2,7 @@ import React from 'react';
 import DashboardHeader from '../components/DashboardHeader';
 import { useAuth } from '../context/AuthContext';
 import KanbanBoard from '../components/kanban/KanbanBoard';
+import CreateOrderModal from '../components/kanban/CreateOrderModal';
 import { useTheme } from '../context/ThemeContext';
 
 // Home Page
@@ -9,6 +10,22 @@ import { useTheme } from '../context/ThemeContext';
 export default function Home() {
     const { colors } = useTheme();
     const [showFilters, setShowFilters] = React.useState(false);
+    const [isModalOpen, setIsModalOpen] = React.useState(false);
+    const [editingOrder, setEditingOrder] = React.useState(null);
+
+    const handleNewOrder = () => {
+        setEditingOrder(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditOrder = (order) => {
+        setEditingOrder(order);
+        setIsModalOpen(true);
+    };
+
+    const handleOrderSaved = () => {
+        window.location.reload();
+    };
 
     return (
         <div style={{
@@ -18,7 +35,7 @@ export default function Home() {
             backgroundColor: colors.bg
         }}>
             {/* Top Header */}
-            <DashboardHeader />
+            <DashboardHeader onNewOrder={handleNewOrder} />
 
             {/* Filter Bar */}
             <div className="mobile-flex-col mobile-p-4" style={{
@@ -128,8 +145,16 @@ export default function Home() {
 
             {/* Main Kanban Board Area */}
             <main style={{ flex: 1, overflow: 'hidden' }}>
-                <KanbanBoard />
+                <KanbanBoard onEditOrder={handleEditOrder} />
             </main>
+
+            {/* Create/Edit Order Modal */}
+            <CreateOrderModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onOrderCreated={handleOrderSaved}
+                orderToEdit={editingOrder}
+            />
         </div>
     );
 }

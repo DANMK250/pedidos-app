@@ -50,17 +50,23 @@ export default function ManageClients() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
+        // Business name fallback
+        const finalFormData = {
+            ...formData,
+            business_name: formData.business_name || formData.client_name
+        };
+
         if (editingClient) {
             const { error } = await supabase
                 .from('clientes')
-                .update(formData)
+                .update(finalFormData)
                 .eq('id', editingClient.id);
 
             if (!error) alert('Cliente actualizado exitosamente');
         } else {
             const { error } = await supabase
                 .from('clientes')
-                .insert([formData]);
+                .insert([finalFormData]);
 
             if (!error) alert('Cliente creado exitosamente');
         }
@@ -118,12 +124,12 @@ export default function ManageClients() {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.bgPrimary, padding: '24px' }}>
-            <Link to="/admin" style={{ color: colors.primary, textDecoration: 'none' }}>
+            <Link to="/admin" style={{ color: 'white', textDecoration: 'none', opacity: 0.8 }}>
                 ← Volver al Panel
             </Link>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '24px' }}>
-                <h1 style={{ color: colors.text, fontSize: '1.75rem' }}>Gestión de Clientes</h1>
+                <h1 style={{ color: 'white', fontSize: '1.75rem' }}>Gestión de Clientes</h1>
                 <button
                     onClick={() => { setShowModal(true); resetForm(); }}
                     style={{
@@ -205,7 +211,7 @@ export default function ManageClients() {
                                     <input
                                         type="text"
                                         value={formData.client_name}
-                                        onChange={(e) => setFormData({ ...formData, client_name: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, client_name: e.target.value.toUpperCase() })}
                                         required
                                         style={{
                                             width: '100%',
@@ -222,7 +228,8 @@ export default function ManageClients() {
                                     <input
                                         type="text"
                                         value={formData.business_name}
-                                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, business_name: e.target.value.toUpperCase() })}
+                                        placeholder="Si se deja vacío, se usará el nombre del cliente"
                                         style={{
                                             width: '100%',
                                             padding: '8px',
@@ -234,11 +241,12 @@ export default function ManageClients() {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>RIF/Cédula</label>
+                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>RIF/Cédula *</label>
                                     <input
                                         type="text"
                                         value={formData.rif_cedula}
-                                        onChange={(e) => setFormData({ ...formData, rif_cedula: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, rif_cedula: e.target.value.toUpperCase() })}
+                                        required
                                         style={{
                                             width: '100%',
                                             padding: '8px',
@@ -250,11 +258,12 @@ export default function ManageClients() {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>Teléfono</label>
+                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>Teléfono *</label>
                                     <input
                                         type="text"
                                         value={formData.phone}
-                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value.toUpperCase() })}
+                                        required
                                         style={{
                                             width: '100%',
                                             padding: '8px',
@@ -266,11 +275,12 @@ export default function ManageClients() {
                                     />
                                 </div>
                                 <div>
-                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>Dirección</label>
+                                    <label style={{ display: 'block', marginBottom: '4px', color: colors.text }}>Dirección *</label>
                                     <textarea
                                         value={formData.address}
-                                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                                        onChange={(e) => setFormData({ ...formData, address: e.target.value.toUpperCase() })}
                                         rows={2}
+                                        required
                                         style={{
                                             width: '100%',
                                             padding: '8px',

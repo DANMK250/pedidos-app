@@ -9,7 +9,7 @@ export default function ManageAdvisors() {
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [editingAdvisor, setEditingAdvisor] = useState(null);
-    const [formData, setFormData] = useState({ name: '', active: true });
+    const [formData, setFormData] = useState({ name: '', phone: '', active: true });
 
     useEffect(() => {
         loadAdvisors();
@@ -53,14 +53,14 @@ export default function ManageAdvisors() {
         }
 
         setShowModal(false);
-        setFormData({ name: '', active: true });
+        setFormData({ name: '', phone: '', active: true });
         setEditingAdvisor(null);
         loadAdvisors();
     };
 
     const handleEdit = (advisor) => {
         setEditingAdvisor(advisor);
-        setFormData({ name: advisor.name, active: advisor.active });
+        setFormData({ name: advisor.name, phone: advisor.phone || '', active: advisor.active });
         setShowModal(true);
     };
 
@@ -80,14 +80,14 @@ export default function ManageAdvisors() {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.bgPrimary, padding: '24px' }}>
-            <Link to="/admin" style={{ color: colors.primary, textDecoration: 'none' }}>
+            <Link to="/admin" style={{ color: 'white', textDecoration: 'none', opacity: 0.8 }}>
                 ← Volver al Panel
             </Link>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '24px' }}>
-                <h1 style={{ color: colors.text, fontSize: '1.75rem' }}>Gestión de Asesoras</h1>
+                <h1 style={{ color: 'white', fontSize: '1.75rem' }}>Gestión de Asesoras</h1>
                 <button
-                    onClick={() => { setShowModal(true); setEditingAdvisor(null); setFormData({ name: '', active: true }); }}
+                    onClick={() => { setShowModal(true); setEditingAdvisor(null); setFormData({ name: '', phone: '', active: true }); }}
                     style={{
                         padding: '10px 20px',
                         backgroundColor: colors.primary,
@@ -172,6 +172,23 @@ export default function ManageAdvisors() {
                                     value={formData.name}
                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                     required
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        borderRadius: '6px',
+                                        border: `1px solid ${colors.border}`,
+                                        backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                        color: colors.text
+                                    }}
+                                />
+                            </div>
+                            <div style={{ marginBottom: '16px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: colors.text }}>Teléfono</label>
+                                <input
+                                    type="text"
+                                    value={formData.phone || ''}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    placeholder="+58 412 1234567"
                                     style={{
                                         width: '100%',
                                         padding: '10px',

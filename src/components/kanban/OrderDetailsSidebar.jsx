@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import { updateOrderStatus, supabase } from '../../services/supabase';
+import { generateOrderReceipt } from '../../utils/pdfGenerator';
 
 // OrderDetailsSidebar Component
 // Slide-over sidebar to show full order details, history, and notes.
-export default function OrderDetailsSidebar({ isOpen, onClose, order, onUpdateOrder }) {
+export default function OrderDetailsSidebar({ isOpen, onClose, order, onUpdateOrder, onEditOrder }) {
     const { colors, theme } = useTheme();
     const [activeTab, setActiveTab] = useState('details'); // details, history, notes
     const [notes, setNotes] = useState([]);
@@ -425,22 +426,39 @@ export default function OrderDetailsSidebar({ isOpen, onClose, order, onUpdateOr
                     justifyContent: 'flex-end'
                 }}>
                     {order.status === 'Creado' && (
-                        <button
-                            onClick={() => handleStatusChange('En Revisión')}
-                            disabled={isUpdating}
-                            style={{
-                                backgroundColor: '#eab308',
-                                color: 'white',
-                                border: 'none',
-                                padding: '10px 20px',
-                                borderRadius: '6px',
-                                fontWeight: '600',
-                                cursor: 'pointer',
-                                flex: 1
-                            }}
-                        >
-                            Enviar a Revisión
-                        </button>
+                        <>
+                            <button
+                                onClick={() => onEditOrder && onEditOrder(order)}
+                                style={{
+                                    backgroundColor: colors.bgTertiary,
+                                    color: colors.text,
+                                    border: `1px solid ${colors.border}`,
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    flex: 1
+                                }}
+                            >
+                                ✏️ Editar
+                            </button>
+                            <button
+                                onClick={() => handleStatusChange('En Revisión')}
+                                disabled={isUpdating}
+                                style={{
+                                    backgroundColor: '#eab308',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '10px 20px',
+                                    borderRadius: '6px',
+                                    fontWeight: '600',
+                                    cursor: 'pointer',
+                                    flex: 1
+                                }}
+                            >
+                                Enviar a Revisión
+                            </button>
+                        </>
                     )}
 
                     {order.status === 'En Revisión' && (
@@ -515,6 +533,28 @@ export default function OrderDetailsSidebar({ isOpen, onClose, order, onUpdateOr
                                 Finalizar Pedido
                             </button>
                         </>
+                    )}
+
+                    {order.status === 'Finalizado' && (
+                        <button
+                            onClick={() => generateOrderReceipt(order)}
+                            style={{
+                                backgroundColor: colors.text,
+                                color: colors.bgPrimary,
+                                border: 'none',
+                                padding: '10px 20px',
+                                borderRadius: '6px',
+                                fontWeight: '600',
+                                cursor: 'pointer',
+                                flex: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px'
+                            }}
+                        >
+                            🖨️ Imprimir Recibo
+                        </button>
                     )}
                 </div>
             </div>

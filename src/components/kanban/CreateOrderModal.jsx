@@ -90,6 +90,67 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, orde
         };
     }, [wrapperRef]);
 
+    // Populate form when editing
+    useEffect(() => {
+        if (orderToEdit && isOpen && asesorasList.length > 0) {
+            // 1. Set Advisor (Find ID by Name)
+            const advisor = asesorasList.find(a =>
+                a.name === orderToEdit.asesora ||
+                a.name.toLowerCase() === (orderToEdit.asesora || '').toLowerCase()
+            );
+
+            if (advisor) {
+                setAsesora(advisor.id);
+            } else {
+                console.warn('Advisor not found for editing:', orderToEdit.asesora);
+            }
+
+            // 2. Set Items (parse if string)
+            let parsedItems = [];
+            if (typeof orderToEdit.items === 'string') {
+                try {
+                    parsedItems = JSON.parse(orderToEdit.items);
+                } catch (e) {
+                    console.error('Error parsing items:', e);
+                    parsedItems = [];
+                }
+            } else {
+                parsedItems = orderToEdit.items || [];
+            }
+
+            if (parsedItems.length > 0) {
+                setItems(parsedItems);
+            }
+
+            // 3. Set Other Fields
+            setCanal(orderToEdit.canal || 'WhatsApp');
+            setTipoPedido(orderToEdit.tipo_pedido || 'Accesorios');
+        } else if (!orderToEdit && isOpen) {
+            // Reset form if creating new
+            setAsesora('');
+            setCliente('');
+            setItems([{ id: 1, description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
+            setCanal('WhatsApp');
+            setTipoPedido('Accesorios');
+            setIsCreatingClient(false);
+            setNewClientData({ client_name: '', business_name: '', rif_cedula: '', phone: '', address: '' });
+        }
+    }, [orderToEdit, isOpen, asesorasList]);
+
+    // Set Client once list is loaded (for editing)
+    useEffect(() => {
+        if (orderToEdit && clientesList.length > 0 && !cliente) {
+            const clientObj = clientesList.find(c =>
+                c.client_name === orderToEdit.customer ||
+                c.client_name.toLowerCase() === (orderToEdit.customer || '').toLowerCase()
+            );
+
+            if (clientObj) {
+                setCliente(clientObj.id);
+            }
+        }
+    }, [orderToEdit, clientesList, cliente]);
+
     // Add a new item row
     const addItem = () => {
         setItems([...items, { id: Date.now(), description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
@@ -201,45 +262,56 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, orde
 
             // Prepare order data
             const orderData = {
-                asesora: advisorName, // Storing name for backward compatibility
-                customer: clientName, // Storing client name
-                items: items.filter(item => item.description), // Only include items with description
+                asesora: advisorName,
+                customer: clientName,
+                items: items.filter(item => item.description),
                 total,
                 tipoPedido,
                 canal,
-                moneda
+                moneda: 'USD'
             };
 
-            // Create order in Supabase
-            const { data, error } = await createOrder(orderData);
-
-            if (error) {
-                console.error('Error creating order:', error);
-                alert('Error al crear el pedido: ' + error.message);
-                return;
+            // Create or Update order in Supabase
+            if (orderToEdit) {
+                // UPDATE existing order
+                const { error } = await updateOrder(orderToEdit.id, orderData);
+                if (error) {
+                    console.error('Error updating order:', error);
+                    alert('Error al actualizar el pedido: ' + error.message);
+                    return;
+                }
+            } else {
+                // CREATE new order
+                const { error } = await createOrder(orderData);
+                if (error) {
+                    console.error('Error creating order:', error);
+                    alert('Error al crear el pedido: ' + error.message);
+                    return;
+                }
             }
 
             // Success!
-            alert('¡Pedido creado exitosamente!');
+            alert(orderToEdit ? '¡Pedido actualizado exitosamente!' : '¡Pedido creado exitosamente!');
 
-            // Reset form
-            setAsesora('');
-            setCliente('');
-            setItems([{ id: 1, description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
-            setCanal('Otro');
-            setMoneda('USD');
-            setTipoPedido('Accesorios');
+            // Reset form if creating new
+            if (!orderToEdit) {
+                setAsesora('');
+                setCliente('');
+                setItems([{ id: 1, description: '', characteristics: '', quantity: 1, unitCost: 0 }]);
+                setCanal('WhatsApp');
+                setTipoPedido('Accesorios');
+            }
 
             // Notify parent component
             if (onOrderCreated) {
-                onOrderCreated(data[0]);
+                onOrderCreated();
             }
 
             // Close modal
             onClose();
         } catch (err) {
             console.error('Unexpected error:', err);
-            alert('Error inesperado al crear el pedido');
+            alert('Error inesperado al procesar el pedido');
         } finally {
             setIsSubmitting(false);
         }

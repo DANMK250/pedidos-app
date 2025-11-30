@@ -1,19 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
-import CreateOrderModal from './kanban/CreateOrderModal';
 import { Link } from 'react-router-dom';
 
 // DashboardHeader Component
 // Top navigation bar with user info and actions.
-export default function DashboardHeader() {
+// DashboardHeader Component
+// Top navigation bar with user info and actions.
+export default function DashboardHeader({ onNewOrder }) {
     const { session, signOut, refreshSession } = useAuth();
     const { theme, toggleTheme, colors } = useTheme();
     const userDisplayName = session?.user?.user_metadata?.first_name
         ? `${session.user.user_metadata.first_name} ${session.user.user_metadata.last_name}`
         : session?.user?.email || 'Usuario';
     const userRole = session?.user?.role || 'user';
-    const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     // Debug: Log session to verify role
@@ -200,7 +200,7 @@ export default function DashboardHeader() {
 
                     {/* New Order Button */}
                     <button
-                        onClick={() => setIsModalOpen(true)}
+                        onClick={onNewOrder}
                         style={{
                             backgroundColor: colors.primary,
                             color: 'white',
@@ -218,16 +218,6 @@ export default function DashboardHeader() {
                     </button>
                 </div>
             </header>
-
-            {/* Create Order Modal */}
-            <CreateOrderModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onOrderCreated={() => {
-                    // Refresh the board
-                    window.location.reload();
-                }}
-            />
         </>
     );
 }

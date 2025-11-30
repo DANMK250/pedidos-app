@@ -151,14 +151,14 @@ export default function ManageUsers() {
 
     return (
         <div style={{ minHeight: '100vh', backgroundColor: colors.bgPrimary, padding: '24px' }}>
-            <Link to="/admin" style={{ color: colors.primary, textDecoration: 'none' }}>
+            <Link to="/admin" style={{ color: 'white', textDecoration: 'none', opacity: 0.8 }}>
                 ← Volver al Panel
             </Link>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', marginBottom: '24px' }}>
                 <div>
-                    <h1 style={{ color: colors.text, fontSize: '1.75rem' }}>Gestión de Usuarios</h1>
-                    <p style={{ color: colors.textMuted, marginTop: '8px' }}>
+                    <h1 style={{ color: 'white', fontSize: '1.75rem' }}>Gestión de Usuarios</h1>
+                    <p style={{ color: 'rgba(255, 255, 255, 0.8)', marginTop: '8px' }}>
                         Administra los roles de los usuarios del sistema
                     </p>
                 </div>

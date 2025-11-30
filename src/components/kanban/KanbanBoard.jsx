@@ -5,7 +5,7 @@ import { getOrders } from '../../services/supabase';
 
 // KanbanBoard Component
 // Main container for the Kanban board.
-export default function KanbanBoard() {
+export default function KanbanBoard({ onEditOrder }) {
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -96,6 +96,7 @@ export default function KanbanBoard() {
                 onClose={() => setSelectedOrder(null)}
                 order={selectedOrder}
                 onUpdateOrder={handleOrderUpdate}
+                onEditOrder={onEditOrder}
             />
         </div>
     );
