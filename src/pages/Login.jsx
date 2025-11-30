@@ -2,13 +2,14 @@ import { useState } from 'react';
 import { supabase } from '../services/supabase';
 
 export default function Login() {
-    const [email, setEmail] = useState('');
+    const [cedula, setCedula] = useState('');
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [errorMsg, setErrorMsg] = useState('');
-    const [isSignUp, setIsSignUp] = useState(false); // Toggle between Login and Sign Up
-    const [selectedRole, setSelectedRole] = useState('user'); // Role selection for signup
-
+    const [isSignUp, setIsSignUp] = useState(false);
+    const [selectedRole, setSelectedRole] = useState('coordinador');
     const [showForgotPassword, setShowForgotPassword] = useState(false);
 
     const handleAuth = async (e) => {
@@ -16,61 +17,83 @@ export default function Login() {
         setLoading(true);
         setErrorMsg('');
 
-        let result;
         if (showForgotPassword) {
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                redirectTo: window.location.origin + '/reset-password',
-            });
-            if (error) {
-                setErrorMsg(error.message);
-            } else {
-                setErrorMsg('✅ Se ha enviado un correo para restablecer tu contraseña.');
-            }
+            setErrorMsg('❌ Función no disponible. Contacta al administrador.');
             setLoading(false);
             return;
         }
 
         if (isSignUp) {
-            // Check if email already exists
-            const { data: existingProfile } = await supabase
-                .from('profiles')
-                .select('id')
-                .eq('email', email)
-                .maybeSingle();
-
-            if (existingProfile) {
-                setErrorMsg('❌ Este correo ya está registrado. Usa "Iniciar Sesión" en su lugar.');
+            // Validate cedula is numeric
+            if (!/^\d+$/.test(cedula)) {
+                setErrorMsg('❌ La cédula debe contener solo números.');
                 setLoading(false);
                 return;
             }
 
-            result = await supabase.auth.signUp({
-                email,
+            // Check if cedula already exists using secure RPC
+            const { data: exists } = await supabase
+                .rpc('check_cedula_exists', { cedula_to_check: cedula });
+
+            if (exists) {
+                setErrorMsg('❌ Esta cédula ya está registrada.');
+                setLoading(false);
+                return;
+            }
+
+            // Check if name + surname + role combination already exists
+            const { data: existingPerson } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('first_name', firstName)
+                .eq('last_name', lastName)
+                .eq('role', selectedRole)
+                .maybeSingle();
+
+            if (existingPerson) {
+                setErrorMsg('❌ Ya existe una persona con este nombre, apellido y departamento.');
+                setLoading(false);
+                return;
+            }
+
+            // Generate email from cedula with valid domain
+            const generatedEmail = `${cedula}@pedidos.app`;
+
+            const { error, data } = await supabase.auth.signUp({
+                email: generatedEmail,
                 password,
                 options: {
                     data: {
+                        cedula,
+                        first_name: firstName,
+                        last_name: lastName,
                         role: selectedRole
                     }
                 }
             });
 
-            // Also update profile with selected role
-            if (!result.error && result.data.user) {
-                await supabase
-                    .from('profiles')
-                    .update({ role: selectedRole })
-                    .eq('id', result.data.user.id);
+            if (error) {
+                setErrorMsg('❌ ' + error.message);
+            } else if (data.user) {
+                // Success - switch to login mode
+                setIsSignUp(false);
+                setCedula('');
+                setFirstName('');
+                setLastName('');
+                setPassword('');
+                setErrorMsg('✅ Cuenta creada exitosamente. Ahora puedes iniciar sesión.');
             }
         } else {
-            result = await supabase.auth.signInWithPassword({ email, password });
-        }
+            // Login with cedula
+            const generatedEmail = `${cedula}@pedidos.app`;
+            const { error } = await supabase.auth.signInWithPassword({
+                email: generatedEmail,
+                password
+            });
 
-        const { error, data } = result;
-
-        if (error) {
-            setErrorMsg(error.message);
-        } else if (isSignUp && data.user && !data.session) {
-            setErrorMsg('✅ Registro exitoso. ¡Revisa tu correo para confirmar!');
+            if (error) {
+                setErrorMsg('❌ Cédula o contraseña incorrecta.');
+            }
         }
 
         setLoading(false);
@@ -92,29 +115,66 @@ export default function Login() {
                 </h2>
                 <p style={{ marginBottom: '1.5rem', color: '#6b7280', fontSize: '0.95rem' }}>
                     {showForgotPassword
-                        ? 'Ingresa tu correo para recibir instrucciones'
-                        : (isSignUp ? 'Ingresa tus datos para registrarte' : 'Ingresa a tu cuenta para continuar')}
+                        ? 'Función no disponible'
+                        : (isSignUp ? 'Ingresa tus datos para registrarte' : 'Ingresa tu cédula para continuar')}
                 </p>
 
                 <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {/* Cédula Field */}
                     <div style={{ textAlign: 'left' }}>
                         <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
-                            Correo Electrónico
+                            Cédula *
                         </label>
                         <input
-                            type="email"
-                            placeholder="ejemplo@correo.com"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
+                            type="text"
+                            placeholder="12345678"
+                            value={cedula}
+                            onChange={(e) => setCedula(e.target.value)}
                             required
+                            pattern="\d*"
+                            title="Solo números"
                             style={{ width: '100%', boxSizing: 'border-box' }}
                         />
                     </div>
 
+                    {/* Name fields (only for signup) */}
+                    {isSignUp && !showForgotPassword && (
+                        <>
+                            <div style={{ textAlign: 'left' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                                    Nombre *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Juan"
+                                    value={firstName}
+                                    onChange={(e) => setFirstName(e.target.value)}
+                                    required
+                                    style={{ width: '100%', boxSizing: 'border-box' }}
+                                />
+                            </div>
+
+                            <div style={{ textAlign: 'left' }}>
+                                <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
+                                    Apellido *
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="Pérez"
+                                    value={lastName}
+                                    onChange={(e) => setLastName(e.target.value)}
+                                    required
+                                    style={{ width: '100%', boxSizing: 'border-box' }}
+                                />
+                            </div>
+                        </>
+                    )}
+
+                    {/* Password Field */}
                     {!showForgotPassword && (
                         <div style={{ textAlign: 'left' }}>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
-                                Contraseña
+                                Contraseña *
                             </label>
                             <input
                                 type="password"
@@ -127,10 +187,11 @@ export default function Login() {
                         </div>
                     )}
 
+                    {/* Department Selector (only for signup) */}
                     {isSignUp && !showForgotPassword && (
                         <div style={{ textAlign: 'left' }}>
                             <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', fontWeight: 600, color: '#374151' }}>
-                                Departamento
+                                Departamento *
                             </label>
                             <select
                                 value={selectedRole}
@@ -145,11 +206,9 @@ export default function Login() {
                                     border: '1px solid #d1d5db'
                                 }}
                             >
-                                <option value="user">Usuario</option>
                                 <option value="coordinador">Coordinador</option>
                                 <option value="deposito">Depósito</option>
                                 <option value="cobranzas">Cobranzas</option>
-                                <option value="admin">Administrador</option>
                             </select>
                         </div>
                     )}
@@ -178,7 +237,7 @@ export default function Login() {
                             width: '100%'
                         }}
                     >
-                        {loading ? 'Procesando...' : (showForgotPassword ? 'Enviar Correo' : (isSignUp ? 'Registrarse' : 'Iniciar Sesión'))}
+                        {loading ? 'Procesando...' : (showForgotPassword ? 'Recuperar' : (isSignUp ? 'Registrarse' : 'Iniciar Sesión'))}
                     </button>
                 </form>
 

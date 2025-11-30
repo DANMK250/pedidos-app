@@ -1,6 +1,9 @@
--- 1. Create profiles table
+-- 1. Create profiles table with cedula fields
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
+  cedula text unique not null,
+  first_name text not null,
+  last_name text not null,
   email text,
   role text default 'user',
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
@@ -25,9 +28,12 @@ create policy "Allow admins to view all profiles" on public.profiles for select 
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email, role)
+  insert into public.profiles (id, cedula, first_name, last_name, email, role)
   values (
     new.id, 
+    new.raw_user_meta_data->>'cedula',
+    new.raw_user_meta_data->>'first_name',
+    new.raw_user_meta_data->>'last_name',
     new.email, 
     coalesce(new.raw_user_meta_data->>'role', 'user')
   );
@@ -42,4 +48,4 @@ create trigger on_auth_user_created
   for each row execute procedure public.handle_new_user();
 
 -- 5. Function to make the first user an admin (Run this manually in SQL Editor after signup)
--- update public.profiles set role = 'admin' where email = 'YOUR_EMAIL';
+-- update public.profiles set role = 'admin' where cedula = 'YOUR_CEDULA';

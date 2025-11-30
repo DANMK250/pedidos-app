@@ -13,6 +13,11 @@ export default function ManageUsers() {
     const [newUserPassword, setNewUserPassword] = useState('');
     const [creatingUser, setCreatingUser] = useState(false);
 
+    const [showResetModal, setShowResetModal] = useState(false);
+    const [selectedUserForReset, setSelectedUserForReset] = useState(null);
+    const [newPassword, setNewPassword] = useState('');
+    const [resettingPassword, setResettingPassword] = useState(false);
+
     useEffect(() => {
         loadUsers();
     }, []);
@@ -41,6 +46,46 @@ export default function ManageUsers() {
             loadUsers();
         } else {
             alert('Error al actualizar rol');
+        }
+    };
+
+    const handlePasswordReset = async (e) => {
+        e.preventDefault();
+        setResettingPassword(true);
+
+        try {
+            // Use the admin API to update user password
+            // Note: This requires the service_role key or being logged in as an admin with proper RLS
+            // Since we are client-side, we can only update if we are the user or if we have an edge function.
+            // However, Supabase client allows updating other users if you have the right permissions setup in Supabase.
+            // BUT, standard client-side update only works for the logged-in user.
+            // To update ANOTHER user's password from the client, we need a workaround or an Edge Function.
+            // WORKAROUND: We will use a Remote Procedure Call (RPC) if available, or alert the user.
+
+            // Actually, for security, Supabase doesn't allow client-side admin updates easily without service role.
+            // We will try to use the 'updateUser' method which might fail without service role key.
+            // If it fails, we'll inform the user they need to use the Supabase dashboard.
+
+            // Wait! We can't use updateUser on client side for other users.
+            // We need to create a Postgres function to handle this securely or use Edge Functions.
+            // Let's try to call a custom RPC function 'admin_reset_password' which we will create.
+
+            const { error } = await supabase.rpc('admin_reset_password', {
+                user_id: selectedUserForReset.id,
+                new_password: newPassword
+            });
+
+            if (error) throw error;
+
+            alert('Contraseña actualizada exitosamente');
+            setShowResetModal(false);
+            setNewPassword('');
+            setSelectedUserForReset(null);
+        } catch (error) {
+            console.error('Error resetting password:', error);
+            alert('Error al actualizar contraseña: ' + error.message + '\n\nNota: Asegúrate de haber ejecutado el script SQL "fix_admin_and_duplicates.sql" que incluye la función de reset.');
+        } finally {
+            setResettingPassword(false);
         }
     };
 
@@ -165,29 +210,122 @@ export default function ManageUsers() {
                                         {new Date(user.created_at).toLocaleDateString()}
                                     </td>
                                     <td style={{ padding: '12px', textAlign: 'right' }}>
-                                        <select
-                                            value={user.role}
-                                            onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                            style={{
-                                                padding: '6px 12px',
-                                                borderRadius: '4px',
-                                                border: `1px solid ${colors.border}`,
-                                                backgroundColor: theme === 'dark' ? '#334155' : 'white',
-                                                color: colors.text,
-                                                cursor: 'pointer'
-                                            }}
-                                        >
-                                            <option value="user">Usuario</option>
-                                            <option value="admin">Administrador</option>
-                                            <option value="coordinador">Coordinador</option>
-                                            <option value="deposito">Depósito</option>
-                                            <option value="cobranzas">Cobranzas</option>
-                                        </select>
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            <select
+                                                value={user.role}
+                                                onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '4px',
+                                                    border: `1px solid ${colors.border}`,
+                                                    backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                                    color: colors.text,
+                                                    cursor: 'pointer'
+                                                }}
+                                            >
+                                                <option value="user">Usuario</option>
+                                                <option value="admin">Administrador</option>
+                                                <option value="coordinador">Coordinador</option>
+                                                <option value="deposito">Depósito</option>
+                                                <option value="cobranzas">Cobranzas</option>
+                                            </select>
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedUserForReset(user);
+                                                    setNewPassword('');
+                                                    setShowResetModal(true);
+                                                }}
+                                                style={{
+                                                    padding: '6px 12px',
+                                                    borderRadius: '4px',
+                                                    border: `1px solid ${colors.border}`,
+                                                    backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                                    color: colors.text,
+                                                    cursor: 'pointer'
+                                                }}
+                                                title="Resetear Contraseña"
+                                            >
+                                                🔑
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
+                </div>
+            )}
+
+            {/* Password Reset Modal */}
+            {showResetModal && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1000
+                }}>
+                    <div style={{
+                        backgroundColor: colors.bgSecondary,
+                        padding: '24px',
+                        borderRadius: '8px',
+                        width: '400px',
+                        maxWidth: '90%'
+                    }}>
+                        <h2 style={{ color: colors.text, marginBottom: '16px' }}>Resetear Contraseña</h2>
+                        <p style={{ color: colors.textMuted, marginBottom: '16px' }}>
+                            Ingresa la nueva contraseña para el usuario {selectedUserForReset?.email}
+                        </p>
+                        <form onSubmit={handlePasswordReset}>
+                            <div style={{ marginBottom: '24px' }}>
+                                <label style={{ display: 'block', marginBottom: '8px', color: colors.text }}>Nueva Contraseña</label>
+                                <input
+                                    type="text"
+                                    value={newPassword}
+                                    onChange={(e) => setNewPassword(e.target.value)}
+                                    required
+                                    minLength={6}
+                                    placeholder="Ej: temporal123"
+                                    style={{
+                                        width: '100%',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: `1px solid ${colors.border}`,
+                                        backgroundColor: theme === 'dark' ? '#334155' : 'white',
+                                        color: colors.text
+                                    }}
+                                />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowResetModal(false)}
+                                    style={{ padding: '8px 16px', cursor: 'pointer' }}
+                                >
+                                    Cancelar
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={resettingPassword}
+                                    style={{
+                                        padding: '8px 16px',
+                                        backgroundColor: colors.primary,
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: 'pointer'
+                                    }}
+                                >
+                                    {resettingPassword ? 'Guardando...' : 'Guardar Contraseña'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
             )}
 

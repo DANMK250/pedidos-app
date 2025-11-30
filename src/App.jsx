@@ -36,11 +36,15 @@ const ProtectedRoute = ({ children }) => {
 // If the user is already logged in, they shouldn't see the login page again.
 const PublicRoute = ({ children }) => {
   const { session, loading } = useAuth();
+  console.log('PublicRoute check:', { session: !!session, loading });
 
   if (loading) return <div>Cargando...</div>;
 
   // If session exists, redirect to home (/).
-  if (session) return <Navigate to="/" replace />;
+  if (session) {
+    console.log('PublicRoute: Redirecting to /');
+    return <Navigate to="/" replace />;
+  }
 
   return children;
 };

@@ -7,9 +7,12 @@ import { Link } from 'react-router-dom';
 // DashboardHeader Component
 // Top navigation bar with user info and actions.
 export default function DashboardHeader() {
-    const { session, signOut } = useAuth();
+    const { session, signOut, refreshSession } = useAuth();
     const { theme, toggleTheme, colors } = useTheme();
-    const userEmail = session?.user?.email || 'Daniel Armas'; // Fallback for mock
+    const userDisplayName = session?.user?.user_metadata?.first_name
+        ? `${session.user.user_metadata.first_name} ${session.user.user_metadata.last_name}`
+        : session?.user?.email || 'Usuario';
+    const userRole = session?.user?.role || 'user';
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -92,13 +95,44 @@ export default function DashboardHeader() {
                                 👤
                             </div>
                             <div className="mobile-hidden-text" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>{userEmail}</span>
+                                <span style={{ fontSize: '0.8rem', fontWeight: '600', color: 'white' }}>{userDisplayName}</span>
                                 <span style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.8)' }}>
-                                    {session?.user?.role === 'admin' ? 'Administrador' : 'Tecnología'}
+                                    {session?.user?.role === 'admin' ? 'Administrador' :
+                                        session?.user?.role === 'coordinador' ? 'Coordinador' :
+                                            session?.user?.role === 'deposito' ? 'Depósito' :
+                                                session?.user?.role === 'cobranzas' ? 'Cobranzas' : 'Usuario'}
                                 </span>
                             </div>
                             <span style={{ color: 'white', fontSize: '0.8rem', marginLeft: '4px' }}>▼</span>
                         </button>
+
+                        {/* Debug/Fix Button for Admin Cache Issues */}
+                        {session?.user?.email?.includes('26918994') && session?.user?.role !== 'admin' && (
+                            <button
+                                onClick={async (e) => {
+                                    e.stopPropagation();
+                                    await refreshSession();
+                                    window.location.reload();
+                                }}
+                                style={{
+                                    position: 'absolute',
+                                    top: '100%',
+                                    right: '100%',
+                                    marginRight: '10px',
+                                    marginTop: '8px',
+                                    backgroundColor: '#ef4444',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '6px 12px',
+                                    borderRadius: '6px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.8rem',
+                                    whiteSpace: 'nowrap'
+                                }}
+                            >
+                                ↻ Forzar Admin
+                            </button>
+                        )}
 
                         {/* Dropdown Menu */}
                         {isProfileOpen && (
