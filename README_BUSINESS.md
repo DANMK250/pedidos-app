@@ -20,19 +20,6 @@ Visualice el estado de su negocio en tiempo real con nuestro tablero interactivo
 ### 3. Inteligencia de Negocios (Analytics) 📈
 No opere a ciegas. Nuestro módulo de reportes le ofrece:
 -   **Ranking de Asesores:** Identifique a sus mejores vendedores al instante.
--   **Top Clientes:** Conozca quiénes son sus compradores más valiosos.
--   **Análisis de Pedidos:** Detecte tendencias de compra y productos estrella.
--   **Métricas en Tiempo Real:** Total de ventas, pedidos activos y eficiencia del equipo.
-
-### 4. CRM Integrado 🤝
--   **Directorio de Clientes:** Toda la información de contacto e historial en un solo lugar.
--   **Gestión de Asesores:** Asigne carteras de clientes y mida el rendimiento individual.
-
-## 🎯 Impacto en su Negocio
-
-| Antes | Después con Nuestra App |
-| :--- | :--- |
-| ❌ Pedidos perdidos en WhatsApp/Papel | ✅ **Trazabilidad 100% digital** |
 | ❌ Desconocimiento del stock real | ✅ **Control de flujo ordenado** |
 | ❌ Decisiones basadas en intuición | ✅ **Decisiones basadas en DATOS** |
 | ❌ Fugas de seguridad | ✅ **Acceso blindado por roles** |

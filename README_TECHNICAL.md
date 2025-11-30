@@ -46,7 +46,10 @@ src/
 2.  **Protección de Rutas:**
     -   `ProtectedRoute`: Verifica sesión activa.
     -   `AdminRoute`: Verifica estrictamente el rol `admin` en los metadatos y perfil.
-3.  **Prevención de Fugas de Datos:**
+3.  **Gestión de Pedidos Avanzada:**
+    -   **Edición en Caliente:** Capacidad de modificar pedidos en estado "Creado" sin duplicar registros.
+    -   **Generación de Recibos:** Motor de PDF (jsPDF) con formato térmico (80mm) y nombres de archivo inteligentes (`asesora_cliente_fecha.pdf`).
+4.  **Prevención de Fugas de Datos:**
     -   Las políticas RLS aseguran que un usuario normal solo vea lo que le corresponde.
     -   Los administradores tienen acceso global auditado.
 
