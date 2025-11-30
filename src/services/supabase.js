@@ -65,6 +65,50 @@ export async function createOrder(orderData) {
 }
 
 /**
+ * Update an existing order
+ * @param {string} orderId - The ID of the order to update
+ * @param {Object} orderData - Updated order data
+ * @returns {Object} - { data, error }
+ */
+export async function updateOrder(orderId, orderData) {
+    try {
+        console.log('Updating order:', orderId, 'with data:', orderData);
+
+        const orderToUpdate = {
+            asesora: orderData.asesora,
+            customer: orderData.customer || orderData.asesora,
+            items: orderData.items,
+            total: orderData.total,
+            tipo_pedido: orderData.tipoPedido,
+            canal: orderData.canal,
+            moneda: orderData.moneda,
+            // Don't update status or user_id unless specifically needed
+        };
+
+        if (orderData.pdfUrl) {
+            orderToUpdate.pdf_url = orderData.pdfUrl;
+        }
+
+        const { data, error } = await supabase
+            .from('pedidos')
+            .update(orderToUpdate)
+            .eq('id', orderId)
+            .select();
+
+        if (error) {
+            console.error('Supabase error updating order:', error);
+        } else {
+            console.log('Order updated successfully:', data);
+        }
+
+        return { data, error };
+    } catch (err) {
+        console.error('Unexpected error in updateOrder:', err);
+        return { data: null, error: err };
+    }
+}
+
+/**
  * Get all orders from the database
  * @returns {Object} - { data, error }
  */
