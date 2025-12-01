@@ -168,13 +168,30 @@ input:focus {
 
 /* Kanban Board Mobile Scroll */
 .kanban-board-mobile {
-  /* Default grid for desktop */
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  /* Default flex for desktop (horizontal scroll) */
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
   gap: 24px;
   padding: 24px;
-  overflow-x: auto;
   height: calc(100vh - 140px);
+  align-items: flex-start;
+  /* Align columns to top */
+}
+
+.kanban-board-mobile>* {
+  flex: 1;
+  /* Allow growing and shrinking */
+  min-width: 220px;
+  /* Minimum width before scrolling */
+}
+
+/* Mobile Dropdown Fix */
+@media (max-width: 768px) {
+  .user-dropdown-menu {
+    right: auto !important;
+    left: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {

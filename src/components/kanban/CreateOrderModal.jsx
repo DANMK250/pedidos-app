@@ -349,7 +349,7 @@ export default function CreateOrderModal({ isOpen, onClose, onOrderCreated, orde
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            zIndex: 1000,
+            zIndex: 2000,
             backdropFilter: 'blur(2px)'
         }}>
             <div ref={wrapperRef} style={{

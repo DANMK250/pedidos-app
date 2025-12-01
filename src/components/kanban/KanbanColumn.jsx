@@ -190,7 +190,7 @@ export default function KanbanColumn({ title, orders, color, onOrderClick, isGro
         <div style={{
             backgroundColor: colors.bgSecondary,
             borderRadius: '12px',
-            minWidth: '280px',
+            // minWidth removed to allow CSS control
             display: 'flex',
             flexDirection: 'column',
             height: '100%',

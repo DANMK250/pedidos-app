@@ -136,7 +136,7 @@ export default function DashboardHeader({ onNewOrder }) {
 
                         {/* Dropdown Menu */}
                         {isProfileOpen && (
-                            <div style={{
+                            <div className="user-dropdown-menu" style={{
                                 position: 'absolute',
                                 top: '100%',
                                 right: 0,
